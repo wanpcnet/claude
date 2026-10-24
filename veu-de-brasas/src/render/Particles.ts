@@ -21,6 +21,7 @@ export interface Particle {
   frames: Texture[] | null;
   stretch: boolean;
   layer: 0 | 1;
+  sy: number;
 }
 
 export interface EmitOpts {
@@ -44,6 +45,15 @@ export interface EmitOpts {
   stretch?: boolean;
   additive?: boolean;
   sx?: number;
+  /** altura acima do chão (px de tela), aplicada após a projeção */
+  h?: number;
+  /** deitado no chão (anéis, flores de cristal): achata no eixo vertical */
+  flat?: boolean;
+}
+
+export interface Projector {
+  x(wx: number, wy: number): number;
+  y(wx: number, wy: number): number;
 }
 
 /** Partículas texturizadas em pool, com limite configurável e camadas aditiva/normal. */
@@ -52,6 +62,8 @@ export class Particles {
   readonly normal = new Container();
   private pool: Pool<Particle>;
   max = 1800;
+  /** projeção mundo → tela (isométrica no combate; identidade no menu) */
+  projector: Projector | null = null;
 
   constructor() {
     this.add.blendMode = 'add';
@@ -59,7 +71,7 @@ export class Particles {
       const s = new Sprite(Texture.EMPTY);
       s.anchor.set(0.5);
       s.visible = false;
-      return { active: false, sprite: s, x: 0, y: 0, vx: 0, vy: 0, life: 0, max: 1, s0: 1, s1: 1, a0: 1, a1: 0, rot: 0, vr: 0, drag: 0, grav: 0, frames: null, stretch: false, layer: 0 };
+      return { active: false, sprite: s, x: 0, y: 0, vx: 0, vy: 0, life: 0, max: 1, s0: 1, s1: 1, a0: 1, a1: 0, rot: 0, vr: 0, drag: 0, grav: 0, frames: null, stretch: false, layer: 0, sy: 1 };
     }, 400);
   }
 
@@ -75,8 +87,10 @@ export class Particles {
     const parent = layer === 0 ? this.add : this.normal;
     if (p.sprite.parent !== parent) parent.addChild(p.sprite);
     p.layer = layer;
-    p.x = o.x;
-    p.y = o.y;
+    // partículas vivem no espaço da tela: velocidades "para cima" sobem na tela
+    p.x = this.projector ? this.projector.x(o.x, o.y) : o.x;
+    p.y = (this.projector ? this.projector.y(o.x, o.y) : o.y) - (o.h ?? 0);
+    p.sy = o.flat ? 0.5 : 1;
     p.vx = o.vx ?? 0;
     p.vy = o.vy ?? 0;
     p.life = 0;
@@ -97,8 +111,9 @@ export class Particles {
     s.tint = o.tint ?? 0xffffff;
     s.visible = true;
     s.position.set(p.x, p.y);
-    s.rotation = p.rot;
-    s.scale.set((o.sx ?? 1) * p.s0, p.s0);
+    s.rotation = o.flat ? 0 : p.rot;
+    if (o.flat) p.vr = 0;
+    s.scale.set((o.sx ?? 1) * p.s0, p.s0 * p.sy);
     s.alpha = p.a0;
   }
 
@@ -126,11 +141,11 @@ export class Particles {
       if (p.stretch) {
         s.rotation = Math.atan2(p.vy, p.vx);
         const sp = Math.min(3, Math.hypot(p.vx, p.vy) / 120 + 0.5);
-        s.scale.set(sc * sp, sc);
+        s.scale.set(sc * sp, sc * p.sy);
       } else {
         p.rot += p.vr * dt;
         s.rotation = p.rot;
-        s.scale.set(Math.sign(s.scale.x || 1) * sc, sc);
+        s.scale.set(Math.sign(s.scale.x || 1) * sc, sc * p.sy);
       }
       s.alpha = p.a0 + (p.a1 - p.a0) * t;
       if (p.frames) s.texture = p.frames[Math.min(p.frames.length - 1, Math.floor(t * p.frames.length))];

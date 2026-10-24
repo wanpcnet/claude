@@ -1,6 +1,6 @@
 # Véu de Brasas
 
-Ação 2D top-down de sobrevivência arcana com hordas (survivor-like), fantasia sombria
+Ação **2.5D isométrica** de sobrevivência arcana com hordas (survivor-like), fantasia sombria
 bioluminescente. Uma arqueira-rúnica, uma coroa em chamas e uma maré viva de criaturas
 cristalinas: reacenda as três Âncoras do Véu e destrua o Coração do Véu.
 
@@ -109,6 +109,22 @@ scripts/audio          síntese de música e efeitos
 scripts/e2e            testes de navegador (Playwright)
 tests/                 Vitest: grade espacial, pools, cartas, armas, save, mapas e roteiro
 ```
+
+### Projeção isométrica (2.5D)
+
+A simulação (movimento, colisão, campo de fluxo, alcance das armas) acontece em coordenadas de
+mundo no plano do chão; só a renderização projeta, com isometria 2:1
+(`sx = (x − y)·0,75 + OX`, `sy = (x + y)·0,375 + OY`, em `src/render/Iso.ts`):
+
+- **Solo:** cada arena é pré-renderizada já em isometria por `scripts/art/ground.py`, com paredes
+  de rocha extrudadas (topo elevado + faces verticais) e bordas das plataformas caindo no abismo.
+- **Camadas deitadas:** sombras, avisos de ataque, Coroa de Brasas, círculos rúnicos, pulsos e o
+  mapa de luz recebem a matriz isométrica (círculos viram elipses no chão).
+- **Elementos em pé:** heroína, inimigos, props, projéteis e coletáveis são sprites posicionados
+  pela projeção e ordenados por profundidade (`x + y`); projéteis e efeitos têm altura visual
+  separada da posição no chão.
+- **Controles:** WASD/setas seguem as direções da tela (cima = cima na tela), convertidas para o
+  plano do mundo; a mira manual com o mouse faz a projeção inversa.
 
 Decisões de desempenho: simulação em passo fixo de 60 Hz; grade espacial com listas em
 arrays tipados (sem alocação por quadro); pools para inimigos, projéteis, partículas, números,

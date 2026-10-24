@@ -8,6 +8,10 @@ from PIL import Image
 
 TILE = 32
 CHUNK = 512
+# projeção isométrica 2:1: sx = (x - y)·S + OX ; sy = (x + y)·S/2 + OY
+ISO_S = 0.75
+PAD_T = 48
+PAD_B = 56
 
 
 def value_noise(h, w, scale, seed, octaves=3):
@@ -240,44 +244,103 @@ def bake(map_path, out_dir, name):
         img[ys[ok], xs[ok]] = hexrgb(col) * (0.6 + 0.4 * k / 3)
         if k == 0:
             img[ys[ok] + 1, xs[ok]] = hexrgb(col) * 0.5
-    # rochas elevadas: face frontal + topo
-    face_h = 16
-    shifted = np.zeros_like(m_rock)
-    for d in range(1, face_h + 1):
-        shifted[d:] |= m_rock[:-d]
-    face = shifted & ~m_rock
-    yy = np.arange(H)[:, None] * np.ones((1, W))
-    strata = material(H, W, th['cliff'], seed + 30, 12, 0.4)
-    strata = strata * (0.85 + 0.15 * np.sin(yy * 0.9)[:, :, None])
-    img[face] = strata[face]
-    shadow = np.zeros_like(m_rock)
-    for d in range(face_h + 1, face_h + 8):
-        shadow[d:] |= m_rock[:-d]
-    sh = shadow & ~m_rock & ~face
-    img[sh] *= 0.6
+    # topo das rochas pintado na pegada (as faces verticais são extrudadas no espaço isométrico)
     rock = material(H, W, th['rock'], seed + 31, 18, 0.35)
     img[m_rock] = rock[m_rock]
     detail(img, m_rock, th['rock'], seed + 42, 260)
-    rtop = m_rock & ~np.roll(m_rock, 1, 0)
-    img[rtop] = np.clip(img[rtop] + 0.14, 0, 1)
-    rlf = m_rock & ~np.roll(m_rock, 1, 1)
-    img[rlf] = np.clip(img[rlf] + 0.07, 0, 1)
-    ao = box_blur(m_rock.astype(np.float32), 12)
-    img *= (1 - np.clip(ao, 0, 1) * 0.35 * (~m_rock))[:, :, None]
     vb = box_blur((~m_walk & ~m_rock).astype(np.float32), 18)
-    img *= (1 - vb * 0.5 * m_walk)[:, :, None]
-
+    img *= (1 - vb * 0.35 * m_walk)[:, :, None]
     img = np.clip(img, 0, 1) ** 0.86
-    out = Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8), 'RGB')
+
+    # ------------------------------------------------------------ projeção isométrica 2:1
+    S = ISO_S
+    Wi = int(round((W + H) * S))
+    Hi = int(round((W + H) * S / 2)) + PAD_T + PAD_B
+    OX = H * S
+    OY = PAD_T
+    k = 1 / (2 * S)
+    aff = (k, k, (-OX - 2 * OY) * k, -k, k, (OX - 2 * OY) * k)
+    voidc = tuple(int(c * 255) for c in hexrgb(th['void']))
+
+    def warp_rgb(a):
+        im = Image.fromarray((np.clip(a, 0, 1) * 255).astype(np.uint8), 'RGB')
+        im = im.transform((Wi, Hi * 2), Image.AFFINE, aff, resample=Image.BICUBIC, fillcolor=voidc)
+        return np.asarray(im.resize((Wi, Hi), Image.LANCZOS)).astype(np.float32) / 255
+
+    def warp_mask(mk):
+        im = Image.fromarray((mk * 255).astype(np.uint8), 'L')
+        im = im.transform((Wi, Hi * 2), Image.AFFINE, aff, resample=Image.BILINEAR, fillcolor=0)
+        return np.asarray(im.resize((Wi, Hi), Image.BILINEAR)) > 127
+
+    iso = warp_rgb(img)
+    R = warp_mask(m_rock)
+    T = warp_mask(m_walk | m_rock)
+    # névoa do abismo no espaço isométrico
+    mist = value_noise(Hi, Wi, 80, seed + 50, 3)
+    iso[~T] = (hexrgb(th['void']) + (mist[~T, None] ** 3) * hexrgb('#1a1a2a') * 0.7)
+    ys = np.arange(Hi)[:, None] * np.ones((1, Wi))
+    # bordas das plataformas caindo no abismo
+    hd = 46
+    drop = np.zeros_like(T)
+    depth = np.zeros((Hi, Wi), np.float32)
+    for d in range(1, hd + 1):
+        sh = np.zeros_like(T)
+        sh[d:] = T[:-d]
+        newp = sh & ~T & ~drop
+        depth[newp] = d
+        drop |= newp
+    cliff = ramp_pick(th['cliff'] + [th['cliff'][-1]], np.clip(value_noise(Hi, Wi, 10, seed + 51, 3), 0, 0.999))
+    strata = 0.8 + 0.2 * np.sin(ys * 0.8 + value_noise(Hi, Wi, 30, seed + 52, 2) * 6)
+    fade = np.clip(1 - depth / hd, 0, 1) ** 1.3
+    face_col = cliff * strata[:, :, None] * (0.45 + 0.75 * fade[:, :, None])
+    iso[drop] = face_col[drop] * 1.25 + hexrgb(th['void']) * (1 - fade[drop, None]) * 0.5
+    lip = T & ~np.roll(T, -2, 0)
+    iso[lip] = np.clip(iso[lip] * 1.35 + 0.04, 0, 1)
+    # rochas com altura: topo elevado + faces verticais
+    hw = 30
+    sweep = R.copy()
+    for d in range(1, hw + 1):
+        sweep[:-d] |= R[d:]
+    top = np.zeros_like(R)
+    top[:-hw] = R[hw:]
+    faces = sweep & ~top
+    # sombra de contato no chão à frente das paredes
+    ao = np.zeros_like(R)
+    for d in range(1, 12):
+        ao[d:] |= R[:-d]
+    ao &= ~sweep & T
+    iso[ao] *= 0.62
+    fdepth = np.zeros((Hi, Wi), np.float32)
+    acc = top.copy()
+    for d in range(1, hw + 1):
+        sh = np.zeros_like(top)
+        sh[d:] = top[:-d]
+        newp = sh & faces & ~acc
+        fdepth[newp] = d
+        acc |= newp
+    rf = ramp_pick(th['cliff'] + [th['rock'][2]], np.clip(value_noise(Hi, Wi, 8, seed + 53, 3) * 1.1, 0, 0.999))
+    shade = 1.15 - 0.5 * (fdepth / hw)
+    rstr = 0.85 + 0.15 * np.sin(ys * 1.3)
+    iso[faces] = (rf * (shade * rstr)[:, :, None] * 1.3)[faces]
+    topimg = np.zeros_like(iso)
+    topimg[:-hw] = iso[hw:] if False else warp_rgb(img)[hw:]
+    iso[top] = topimg[top]
+    edge_t = top & ~np.roll(top, 1, 0)
+    iso[edge_t] = np.clip(iso[edge_t] + 0.16, 0, 1)
+    edge_b = top & ~np.roll(top, -1, 0)
+    iso[edge_b] = np.clip(iso[edge_b] + 0.08, 0, 1)
+
+    out = Image.fromarray((np.clip(iso, 0, 1) * 255).astype(np.uint8), 'RGB')
     os.makedirs(out_dir, exist_ok=True)
     chunks = []
-    for cy in range(0, H, CHUNK):
-        for cx in range(0, W, CHUNK):
-            tile = out.crop((cx, cy, min(cx + CHUNK, W), min(cy + CHUNK, H)))
-            q = tile.quantize(colors=96, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+    for cy in range(0, Hi, CHUNK):
+        for cx in range(0, Wi, CHUNK):
+            tile = out.crop((cx, cy, min(cx + CHUNK, Wi), min(cy + CHUNK, Hi)))
+            q = tile.quantize(colors=128, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
             fn = f'{name}_{cx // CHUNK}_{cy // CHUNK}.png'
             q.save(os.path.join(out_dir, fn), optimize=True)
             chunks.append({'file': fn, 'x': cx, 'y': cy, 'w': tile.width, 'h': tile.height})
     with open(os.path.join(out_dir, f'{name}_chunks.json'), 'w') as f:
-        json.dump({'width': W, 'height': H, 'chunk': CHUNK, 'chunks': chunks}, f)
+        json.dump({'width': Wi, 'height': Hi, 'chunk': CHUNK, 'chunks': chunks,
+                   'iso': {'s': S, 'ox': OX, 'oy': OY, 'worldW': W, 'worldH': H}}, f)
     return out

@@ -2,6 +2,7 @@ import { Container, Sprite } from 'pixi.js';
 import type { AssetLoader } from '../game/AssetLoader';
 import { BLOCKING, normalizedRows, type MapData } from '../content/maps';
 import { PROPS } from '../content/props';
+import { iso } from '../render/Iso';
 
 export interface PropInst {
   sprite: Sprite;
@@ -80,15 +81,17 @@ export class Arena {
       for (let x = 0; x < this.cols; x++) {
         const ch = this.lines[y][x];
         const cx = x * T + T / 2;
-        const cy = y * T + T * 0.8;
+        const cy = y * T + T / 2;
         if (ch === 'A') {
+          // a Âncora fica no centro da célula; o círculo de canalização é desenhado à sua frente
+          const ay = cy - 18;
           const s = new Sprite(assets.tex('props', 'anchor_off'));
           s.anchor.set(0.5, 0.94);
-          s.position.set(cx, cy - 26);
-          s.zIndex = cy - 26;
+          s.position.set(iso.x(cx, ay), iso.y(cx, ay));
+          s.zIndex = iso.depth(cx, ay);
           entityLayer.addChild(s);
           this.anchorSprite = s;
-          this.addCollider({ sprite: s, x: cx, y: cy - 28, r: 13, id: 'anchor' });
+          this.addCollider({ sprite: s, x: cx, y: ay, r: 13, id: 'anchor' });
           continue;
         }
         const id = this.map.legend[ch];
@@ -98,18 +101,18 @@ export class Arena {
         const variant = (x * 7 + y * 13) % def.variants;
         const s = new Sprite(assets.tex('props', `${id}_${variant}`));
         s.anchor.set(0.5, id === 'rift' ? 0.5 : 0.92);
-        s.position.set(cx, cy);
+        s.position.set(iso.x(cx, cy), iso.y(cx, cy));
         if ((x * 31 + y * 17) % 2 === 1 && id !== 'monument' && id !== 'altar' && id !== 'rift' && id !== 'copper_sigil') s.scale.x = -1;
         if (def.low) lowLayer.addChild(s);
         else {
-          s.zIndex = cy;
+          s.zIndex = iso.depth(cx, cy);
           entityLayer.addChild(s);
         }
-        const inst: PropInst = { sprite: s, x: cx, y: cy - 2, r: def.collider, id };
+        const inst: PropInst = { sprite: s, x: cx, y: cy, r: def.collider, id };
         this.props.push(inst);
         if (def.collider > 0) this.addCollider(inst);
         if (def.light) {
-          this.lights.push({ x: cx, y: cy + (def.light.oy ?? 0), color: def.light.color, radius: def.light.radius, flicker: !!def.light.flicker, phase: (x * 13 + y * 7) % 10 });
+          this.lights.push({ x: cx, y: cy, color: def.light.color, radius: def.light.radius, flicker: !!def.light.flicker, phase: (x * 13 + y * 7) % 10 });
         }
       }
     }
@@ -216,13 +219,13 @@ export class Arena {
           if (!b) continue;
           for (const p of b) {
             const dx = pos.x - p.x;
-            const dy = (pos.y - p.y) * 1.25;
+            const dy = pos.y - p.y;
             const rr = r + p.r;
             const d2 = dx * dx + dy * dy;
             if (d2 < rr * rr && d2 > 1e-6) {
               const d = Math.sqrt(d2);
               pos.x = p.x + (dx / d) * rr;
-              pos.y = p.y + ((dy / d) * rr) / 1.25;
+              pos.y = p.y + (dy / d) * rr;
               hit = true;
             }
           }

@@ -1,6 +1,7 @@
 import { Sprite, Texture } from 'pixi.js';
 import type { World } from '../world/World';
 import { clamp } from '../utils/math';
+import { iso } from '../render/Iso';
 
 export type Dir = 'down' | 'up' | 'left' | 'right';
 
@@ -42,7 +43,8 @@ export class Hero {
     this.sprite.anchor.set(0.5, 0.9);
     this.shadow = new Sprite(w.assets.tex('fx', 'shadow'));
     this.shadow.anchor.set(0.5);
-    this.shadow.scale.set(0.75, 0.75);
+    // sombra circular no plano do chão (a camada deitada aplica a projeção)
+    this.shadow.scale.set(0.6, 1.37);
     this.shadow.alpha = 0.6;
   }
 
@@ -72,7 +74,11 @@ export class Hero {
     this.dashCd -= dt;
     this.shootT -= dt;
     const input = w.game.input;
-    const mv = w.controlsLocked ? { x: 0, y: 0 } : input.move();
+    // a entrada é em direções da tela; converte para o plano do mundo isométrico
+    const raw = w.controlsLocked ? { x: 0, y: 0 } : input.move();
+    const mag = Math.min(1, Math.hypot(raw.x, raw.y));
+    const wd = iso.screenDirToWorld(raw.x, raw.y);
+    const mv = { x: wd.x * mag, y: wd.y * mag };
     const st = w.stats;
     if (!w.controlsLocked && input.consume('dash') && this.dashCd <= 0 && this.dashT <= 0) {
       let dx = mv.x;
@@ -97,7 +103,7 @@ export class Hero {
       this.afterT -= dt;
       if (this.afterT <= 0) {
         this.afterT = 0.03;
-        w.fx.dashTrail(this.x, this.y - 22, this.sprite.texture, 1);
+        w.fx.at(26).dashTrail(this.x, this.y, this.sprite.texture, 1);
       }
     } else {
       const sp = this.baseSpeed * st.speedMul;
@@ -114,12 +120,15 @@ export class Hero {
     this.y = pos.y;
     // direção: movimento, ou mira quando parada
     const moving = Math.hypot(this.vx, this.vy) > 20;
-    let fx = moving ? this.vx : this.aimX;
-    let fy = moving ? this.vy : this.aimY;
+    let wx = moving ? this.vx : this.aimX;
+    let wy = moving ? this.vy : this.aimY;
     if (this.shootT > 0) {
-      fx = this.aimX;
-      fy = this.aimY;
+      wx = this.aimX;
+      wy = this.aimY;
     }
+    // direção do sprite segundo a tela
+    const fx = wx - wy;
+    const fy = (wx + wy) * 0.5;
     if (Math.abs(fx) > Math.abs(fy) * 1.1) this.dir = fx > 0 ? 'right' : 'left';
     else if (fx || fy) this.dir = fy > 0 ? 'down' : 'up';
     // animação
@@ -145,8 +154,8 @@ export class Hero {
   }
 
   place(): void {
-    this.sprite.position.set(Math.round(this.x), Math.round(this.y - this.z));
-    this.sprite.zIndex = this.y;
+    this.sprite.position.set(Math.round(iso.x(this.x, this.y)), Math.round(iso.y(this.x, this.y) - this.z));
+    this.sprite.zIndex = iso.depth(this.x, this.y);
     this.shadow.position.set(this.x, this.y);
   }
 
@@ -155,8 +164,8 @@ export class Hero {
     const before = this.hp;
     this.hp = Math.min(this.maxHp, this.hp + n);
     if (fx && this.hp - before >= 1) {
-      this.w.fx.healBurst(this.x, this.y - 16);
-      this.w.floatText.spawn(this.x, this.y - 40, '+' + Math.round(this.hp - before), 0x70f0a0, true);
+      this.w.fx.at(16).healBurst(this.x, this.y);
+      this.w.floatText.spawn(this.x, this.y, '+' + Math.round(this.hp - before), 0x70f0a0, true, 40);
     }
   }
 
@@ -172,7 +181,7 @@ export class Hero {
     const l = Math.hypot(dx, dy) || 1;
     this.vx += (dx / l) * 160;
     this.vy += (dy / l) * 160;
-    this.w.floatText.spawn(this.x, this.y - 36, String(Math.round(dmg)), 0xff6060, true);
+    this.w.floatText.spawn(this.x, this.y, String(Math.round(dmg)), 0xff6060, true, 36);
     if (this.hp <= 0) {
       this.hp = 0;
       this.alive = false;

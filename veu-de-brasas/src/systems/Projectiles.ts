@@ -5,6 +5,7 @@ import type { World } from '../world/World';
 import type { Enemy } from '../entities/Enemy';
 import { rng } from '../utils/rng';
 import { TAU } from '../utils/math';
+import { iso } from '../render/Iso';
 
 export type PKind = 'arrow' | 'lance' | 'shard' | 'seed' | 'ember';
 export type EKind = 'orb' | 'coral' | 'lava' | 'crystal';
@@ -33,6 +34,8 @@ export interface Proj {
   t: number;
   frames: Texture[] | null;
   light: ReturnType<World['lighting']['flash']> | null;
+  /** altura visual acima do chão (px de tela) */
+  z: number;
 }
 
 export interface EProj {
@@ -48,6 +51,7 @@ export interface EProj {
   sprite: Sprite;
   t: number;
   accel: number;
+  z: number;
 }
 
 /** Projéteis do jogador (perfuração, queimadura, explosões) e dos inimigos (orbes, estilhaços, lava). */
@@ -75,14 +79,14 @@ export class Projectiles {
       tr.visible = false;
       this.layer.addChild(s);
       this.trails.addChild(tr);
-      return { active: false, kind: 'arrow', x: 0, y: 0, vx: 0, vy: 0, life: 0, r: 4, dmg: 0, pierce: 0, hits: new Int32Array(48), nHits: 0, src: Src.Arrow, type: 'physical', burn: 0, spin: 0, tx: 0, ty: 0, sprite: s, trail: tr, t: 0, frames: null, light: null };
+      return { active: false, kind: 'arrow', x: 0, y: 0, vx: 0, vy: 0, life: 0, r: 4, dmg: 0, pierce: 0, hits: new Int32Array(48), nHits: 0, src: Src.Arrow, type: 'physical', burn: 0, spin: 0, tx: 0, ty: 0, sprite: s, trail: tr, t: 0, frames: null, light: null, z: 14 };
     }, 60, 500);
     this.epool = new Pool<EProj>(() => {
       const s = new Sprite(Texture.EMPTY);
       s.anchor.set(0.5);
       s.visible = false;
       this.enemyLayer.addChild(s);
-      return { active: false, kind: 'orb', x: 0, y: 0, vx: 0, vy: 0, life: 0, r: 5, dmg: 0, sprite: s, t: 0, accel: 0 };
+      return { active: false, kind: 'orb', x: 0, y: 0, vx: 0, vy: 0, life: 0, r: 5, dmg: 0, sprite: s, t: 0, accel: 0, z: 12 };
     }, 40, 400);
   }
 
@@ -90,7 +94,7 @@ export class Projectiles {
     return this.pool.activeCount + this.epool.activeCount;
   }
 
-  fire(kind: PKind, x: number, y: number, ang: number, speed: number, dmg: number, opts: Partial<Pick<Proj, 'pierce' | 'r' | 'life' | 'src' | 'type' | 'burn' | 'spin' | 'tx' | 'ty'>> = {}): Proj | null {
+  fire(kind: PKind, x: number, y: number, ang: number, speed: number, dmg: number, opts: Partial<Pick<Proj, 'pierce' | 'r' | 'life' | 'src' | 'type' | 'burn' | 'spin' | 'tx' | 'ty' | 'z'>> = {}): Proj | null {
     const p = this.pool.acquire();
     if (!p) return null;
     p.kind = kind;
@@ -110,6 +114,7 @@ export class Projectiles {
     p.ty = opts.ty ?? 0;
     p.nHits = 0;
     p.t = 0;
+    p.z = opts.z ?? 14;
     p.frames = null;
     const s = p.sprite;
     const tr = p.trail;
@@ -157,7 +162,7 @@ export class Projectiles {
     return p;
   }
 
-  enemyFire(kind: EKind, x: number, y: number, ang: number, speed: number, dmg: number, life = 3, accel = 0): EProj | null {
+  enemyFire(kind: EKind, x: number, y: number, ang: number, speed: number, dmg: number, life = 3, accel = 0, z = 14): EProj | null {
     const p = this.epool.acquire();
     if (!p) return null;
     p.kind = kind;
@@ -169,6 +174,7 @@ export class Projectiles {
     p.life = life;
     p.t = 0;
     p.accel = accel;
+    p.z = z;
     const s = p.sprite;
     s.visible = true;
     s.rotation = 0;
@@ -211,12 +217,15 @@ export class Projectiles {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       const ang = Math.atan2(p.vy, p.vx);
-      p.sprite.position.set(p.x, p.y);
-      p.sprite.rotation = p.kind === 'ember' ? 0 : ang;
+      const sang = iso.angle(p.vx, p.vy);
+      const sx = iso.x(p.x, p.y);
+      const sy = iso.y(p.x, p.y) - p.z;
+      p.sprite.position.set(sx, sy);
+      p.sprite.rotation = p.kind === 'ember' ? 0 : sang;
       if (p.kind === 'shard') p.sprite.rotation += p.t * 10;
       if (p.frames) p.sprite.texture = p.frames[Math.floor(p.t * 14) % p.frames.length];
-      p.trail.position.set(p.x, p.y);
-      p.trail.rotation = ang;
+      p.trail.position.set(sx, sy);
+      p.trail.rotation = sang;
       if (p.kind === 'seed') {
         const arrive = p.life <= 0;
         if (arrive) {
@@ -226,12 +235,12 @@ export class Projectiles {
         continue;
       }
       if (p.life <= 0 || (p.kind !== 'ember' && w.arena.lineClear(p.x - p.vx * dt, p.y - p.vy * dt, p.x, p.y) === false)) {
-        if (p.kind === 'arrow' || p.kind === 'shard') w.fx.hit(p.x, p.y, p.kind === 'arrow' ? 0xffc060 : 0x9ff4ff, 0.4);
+        if (p.kind === 'arrow' || p.kind === 'shard') w.fx.at(p.z).hit(p.x, p.y, p.kind === 'arrow' ? 0xffc060 : 0x9ff4ff, 0.4);
         this.release(p);
         continue;
       }
-      if (p.kind === 'ember' && p.t % 0.06 < dt) w.particles.emit({ tex: this.tex.ember, x: p.x, y: p.y, life: 0.3, s0: 1.2, s1: 0.2, tint: 0xff8030 });
-      if (p.kind === 'lance' && p.t % 0.03 < dt) w.fx.fire(p.x - p.vx * 0.03, p.y - p.vy * 0.03, 1, 4);
+      if (p.kind === 'ember' && p.t % 0.06 < dt) w.particles.emit({ tex: this.tex.ember, x: p.x, y: p.y, h: p.z, life: 0.3, s0: 1.2, s1: 0.2, tint: 0xff8030 });
+      if (p.kind === 'lance' && p.t % 0.03 < dt) w.fx.at(p.z).fire(p.x - p.vx * 0.03, p.y - p.vy * 0.03, 1, 4);
       // colisão com inimigos via grade espacial
       const ids = w.enemies.hash.query(p.x, p.y, p.r + 64);
       let dead = false;
@@ -264,8 +273,8 @@ export class Projectiles {
       }
       p.x += p.vx * dt;
       p.y += p.vy * dt;
-      p.sprite.position.set(p.x, p.y);
-      if (p.kind === 'coral') p.sprite.rotation = Math.atan2(p.vy, p.vx);
+      p.sprite.position.set(iso.x(p.x, p.y), iso.y(p.x, p.y) - p.z);
+      if (p.kind === 'coral') p.sprite.rotation = iso.angle(p.vx, p.vy);
       else p.sprite.scale.set((p.kind === 'crystal' ? 1.1 : 1) * (1 + Math.sin(p.t * 20) * 0.1));
       const out = p.x < 0 || p.y < 0 || p.x > w.arena.width || p.y > w.arena.height;
       if (p.life <= 0 || out) {
@@ -274,11 +283,11 @@ export class Projectiles {
         continue;
       }
       const dx = hero.x - p.x;
-      const dy = hero.y - 10 - p.y;
+      const dy = hero.y - p.y;
       const rr = p.r + 6;
       if (dx * dx + dy * dy < rr * rr && hero.alive) {
         if (w.damageHero(p.dmg, p.x, p.y)) {
-          w.fx.hit(p.x, p.y, p.kind === 'lava' ? 0xff8030 : p.kind === 'orb' ? 0xb090ff : 0x9ff4ff, 0.8);
+          w.fx.at(p.z).hit(p.x, p.y, p.kind === 'lava' ? 0xff8030 : p.kind === 'orb' ? 0xb090ff : 0x9ff4ff, 0.8);
           p.sprite.visible = false;
           this.epool.release(p);
         }
@@ -300,27 +309,27 @@ export class Projectiles {
     const knock = p.kind === 'lance' ? 60 : p.kind === 'arrow' ? 50 : 30;
     w.damageEnemy(e, { amount: p.dmg, type: p.type, source: p.src, knock, kx: Math.cos(ang), ky: Math.sin(ang), burn: p.burn, burnDur: p.burn ? 2.5 : 0 });
     if (p.kind === 'arrow') {
-      w.fx.hit(e.x, e.y - 8, 0xffd070, 0.7);
+      w.fx.at(8).hit(e.x, e.y, 0xffd070, 0.7);
       if (w.build.flags.l_phoenix) w.weapons.phoenixBurst(e.x, e.y, p.dmg);
     } else if (p.kind === 'lance') {
-      w.fx.fire(e.x, e.y - 6, 3, 8);
+      w.fx.at(6).fire(e.x, e.y, 3, 8);
     } else if (p.kind === 'shard') {
-      w.fx.shatter(e.x, e.y - 6, 3);
+      w.fx.at(6).shatter(e.x, e.y, 3);
     } else if (p.kind === 'ember') {
-      w.fx.fire(e.x, e.y - 6, 2, 6);
+      w.fx.at(6).fire(e.x, e.y, 2, 6);
     }
   }
 
   /** dispara leque de projéteis inimigos */
-  fan(kind: EKind, x: number, y: number, ang: number, count: number, spread: number, speed: number, dmg: number): void {
+  fan(kind: EKind, x: number, y: number, ang: number, count: number, spread: number, speed: number, dmg: number, z = 14): void {
     for (let i = 0; i < count; i++) {
       const a = count === 1 ? ang : ang - spread / 2 + (spread * i) / (count - 1);
-      this.enemyFire(kind, x, y, a, speed, dmg, 4);
+      this.enemyFire(kind, x, y, a, speed, dmg, 4, 0, z);
     }
   }
 
-  radial(kind: EKind, x: number, y: number, count: number, speed: number, dmg: number, offset = 0, accel = 0): void {
-    for (let i = 0; i < count; i++) this.enemyFire(kind, x, y, offset + (i / count) * TAU, speed, dmg, 5, accel);
+  radial(kind: EKind, x: number, y: number, count: number, speed: number, dmg: number, offset = 0, accel = 0, z = 20): void {
+    for (let i = 0; i < count; i++) this.enemyFire(kind, x, y, offset + (i / count) * TAU, speed, dmg, 5, accel, z);
   }
 
   clear(): void {

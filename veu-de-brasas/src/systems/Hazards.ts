@@ -95,7 +95,7 @@ export class Hazards {
       s.anchor.set(0.5);
       s.position.set(x, y);
     }
-    h.outline.scale.set((r * 2) / 128, (r * 2 * 0.9) / 128);
+    h.outline.scale.set((r * 2) / 128, (r * 2) / 128);
     return h;
   }
 
@@ -145,7 +145,7 @@ export class Hazards {
     h.outline.texture = this.tex.circle;
     h.outline.anchor.set(0.5);
     h.outline.position.set(x, y);
-    h.outline.scale.set(0.5, 0.45);
+    h.outline.scale.set(0.5, 0.5);
     h.fill.visible = false;
     h.extra.position.set(x, y);
     h.extra.tint = color;
@@ -157,7 +157,7 @@ export class Hazards {
     switch (h.kind) {
       case 'circle': {
         const dx = px - h.x;
-        const dy = (py - h.y) / 0.9;
+        const dy = py - h.y;
         return dx * dx + dy * dy <= (h.r + pr) ** 2;
       }
       case 'line': {
@@ -197,7 +197,7 @@ export class Hazards {
         const pulse = 0.55 + Math.sin(h.t * 18) * 0.15 * p;
         h.outline.alpha = pulse;
         h.fill.alpha = 0.35 + p * 0.35;
-        if (h.kind === 'circle') h.fill.scale.set(((h.r * 2) / 128) * p, ((h.r * 2 * 0.9) / 128) * p);
+        if (h.kind === 'circle') h.fill.scale.set(((h.r * 2) / 128) * p, ((h.r * 2) / 128) * p);
         else if (h.kind === 'line') h.fill.scale.set((h.len / 128) * p, h.w / 24);
         else if (h.kind === 'cone') h.fill.scale.set((h.len / 128) * p, h.outline.scale.y * p);
         else if (h.kind === 'ring') h.outline.alpha = 0.4 + Math.sin(h.t * 20) * 0.2;
@@ -218,7 +218,7 @@ export class Hazards {
       if (h.kind === 'ring') {
         h.r += h.ringSpeed * dt;
         const s = (h.r * 2) / (128 * 0.82);
-        h.extra.scale.set(s, s * 0.92);
+        h.extra.scale.set(s, s);
         h.extra.alpha = Math.min(1, (1 - h.r / h.ringMax) * 2);
         if (!h.hitDone && h.dmg > 0 && hero.z <= 0 && this.inside(h, hero.x, hero.y, 6)) {
           h.hitDone = true;

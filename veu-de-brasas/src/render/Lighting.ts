@@ -1,4 +1,4 @@
-import { Container, RenderTexture, Sprite, Texture, type Renderer } from 'pixi.js';
+import { Container, Matrix, RenderTexture, Sprite, Texture, type Renderer } from 'pixi.js';
 import type { StaticLight } from '../world/Arena';
 import { Pool } from '../utils/Pool';
 
@@ -115,10 +115,17 @@ export class Lighting {
     }
   }
 
-  render(renderer: Renderer, worldX: number, worldY: number, zoom: number): void {
+  /** `ground` = matriz mundo → tela do plano do chão (projeção isométrica · zoom · câmera) */
+  render(renderer: Renderer, ground: Matrix): void {
     if (!this.enabled) return;
-    this.root.position.set(worldX * this.scale, worldY * this.scale);
-    this.root.scale.set(zoom * this.scale);
+    const m = ground.clone();
+    m.a *= this.scale;
+    m.b *= this.scale;
+    m.c *= this.scale;
+    m.d *= this.scale;
+    m.tx *= this.scale;
+    m.ty *= this.scale;
+    this.root.setFromMatrix(m);
     renderer.render({ container: this.root, target: this.rt, clear: true, clearColor: [this.ambient[0], this.ambient[1], this.ambient[2], 1] });
   }
 }

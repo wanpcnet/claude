@@ -6,6 +6,7 @@ import type { World } from '../world/World';
 import { Pool } from '../utils/Pool';
 import { rng } from '../utils/rng';
 import { TAU } from '../utils/math';
+import { iso } from '../render/Iso';
 
 interface Bolt {
   active: boolean;
@@ -53,7 +54,7 @@ export class Weapons {
     this.pulseRing.visible = false;
     this.ring2.visible = false;
     this.crownGround.addChild(this.glow, this.ring, this.ring2);
-    w.layers.fxAdd.addChild(this.pulseRing);
+    w.layers.flatFx.addChild(this.pulseRing);
     this.flameFrames = a.anim('fx', 'flame');
     for (let i = 0; i < 8; i++) {
       const r = new Sprite(a.tex('fx', `rune_${i}`));
@@ -129,7 +130,7 @@ export class Weapons {
     const h = w.hero;
     if (w.game.save.data.settings.manualAim && w.game.input.mouseInside && !w.game.input.usingTouch) {
       const p = w.screenToWorld(w.game.input.mouseX, w.game.input.mouseY);
-      return { ang: Math.atan2(p.y - (h.y - 12), p.x - h.x), target: null };
+      return { ang: Math.atan2(p.y - h.y, p.x - h.x), target: null };
     }
     let t = w.enemies.nearest(h.x, h.y, range);
     // prioriza elite/chefe quando não há ameaça colada na heroína
@@ -140,7 +141,7 @@ export class Weapons {
       if (db <= range + big.radius && (preferBig === 'always' || dn > 90)) t = big;
     }
     if (!t) return { ang: Math.atan2(h.aimY, h.aimX), target: null };
-    return { ang: Math.atan2(t.y - 6 - (h.y - 12), t.x - h.x), target: t };
+    return { ang: Math.atan2(t.y - h.y, t.x - h.x), target: t };
   }
 
   private fire(id: WeaponId, L: WeaponLevel): boolean {
@@ -148,7 +149,7 @@ export class Weapons {
     const h = w.hero;
     const st = w.stats;
     const ox = h.x;
-    const oy = h.y - 14;
+    const oy = h.y;
     switch (id) {
       case 'arrow': {
         const { ang, target } = this.aim(L.range, 'soft');
@@ -236,17 +237,19 @@ export class Weapons {
       w.damageEnemy(e, { amount: L.damage, type: 'wind', source: Src.Wind, knock, kx: Math.cos(ea), ky: Math.sin(ea), burn: tornado ? 4 : 0, burnDur: tornado ? 2 : 0 });
     });
     const frames = w.assets.anim('fx', 'wind');
-    w.particles.emit({ tex: frames[0], frames, x: h.x + Math.cos(ang) * 8, y: h.y - 12 + Math.sin(ang) * 8, rot: ang, life: 0.32, s0: (R / 60) * 0.9, s1: (R / 60) * 1.15, a0: 0.9, a1: 0.1, tint: tornado ? 0xffb070 : 0xffffff, additive: !tornado ? false : true });
+    const sang = iso.angle(Math.cos(ang), Math.sin(ang));
+    w.particles.emit({ tex: frames[0], frames, x: h.x + Math.cos(ang) * 8, y: h.y + Math.sin(ang) * 8, h: 12, rot: sang, life: 0.32, s0: (R / 60) * 0.9, s1: (R / 60) * 1.15, a0: 0.9, a1: 0.1, tint: tornado ? 0xffb070 : 0xffffff, additive: !tornado ? false : true });
     for (let i = 0; i < 6; i++) {
       const a = ang + rng.range(-L.arc / 2, L.arc / 2);
-      w.particles.emit({ tex: w.fx.streak, x: h.x, y: h.y - 12, vx: Math.cos(a) * 320, vy: Math.sin(a) * 320, life: 0.25, s0: 0.8, s1: 0.4, tint: tornado ? 0xffa050 : 0xe8e0d0, stretch: true, drag: 4 });
+      const sa = iso.angle(Math.cos(a), Math.sin(a));
+      w.particles.emit({ tex: w.fx.streak, x: h.x, y: h.y, h: 12, vx: Math.cos(sa) * 320, vy: Math.sin(sa) * 320, life: 0.25, s0: 0.8, s1: 0.4, tint: tornado ? 0xffa050 : 0xe8e0d0, stretch: true, drag: 4 });
     }
     if (tornado) {
       for (let i = 0; i < 7; i++) {
         const a = ang + (i - 3) * (L.arc / 7);
-        w.projectiles.fire('ember', h.x, h.y - 12, a, 150, 9, { pierce: 2, r: 6, life: 1.1, src: Src.Ember, type: 'fire', burn: 5, spin: 2.6 * (i % 2 ? 1 : -1) });
+        w.projectiles.fire('ember', h.x, h.y, a, 150, 9, { pierce: 2, r: 6, life: 1.1, src: Src.Ember, type: 'fire', burn: 5, spin: 2.6 * (i % 2 ? 1 : -1) });
       }
-      w.fx.fire(h.x + Math.cos(ang) * 30, h.y + Math.sin(ang) * 30, 6, 20);
+      w.fx.at(10).fire(h.x + Math.cos(ang) * 30, h.y + Math.sin(ang) * 30, 6, 20);
       w.sfx('sfx_fire', { volume: 0.4, gap: 0.1 });
     }
     w.sfx('sfx_wind', { volume: 0.5, gap: 0.1 });
@@ -257,37 +260,44 @@ export class Weapons {
     const hit = new Set<number>();
     let px = ox;
     let py = oy;
+    let pz = root ? 14 : 8;
     let cur: Enemy | null = first;
     let dmg = L.damage;
     let shards = 0;
     const thunder = !!w.build.flags.c_thunder;
     for (let i = 0; cur && i <= jumps; i++) {
       hit.add(cur.id);
-      this.bolt(px, py, cur.x, cur.y - 8);
+      this.bolt(px, py, pz, cur.x, cur.y, 8);
       w.damageEnemy(cur, { amount: dmg, type: 'lightning', source: Src.Chain, slow: 0.4, slowDur: 0.35 });
-      w.fx.electric(cur.x, cur.y - 8);
+      w.fx.at(8).electric(cur.x, cur.y);
       w.lighting.flash(cur.x, cur.y, 0x80b8ff, 60, 0.15, 0.8);
       if (thunder && shards < 6) {
         const o = w.enemies.nearest(cur.x, cur.y, 160, hit);
         if (o) {
           shards++;
-          w.projectiles.fire('shard', cur.x, cur.y - 8, Math.atan2(o.y - cur.y, o.x - cur.x), 360, L.damage * 0.5, { r: 4, life: 0.6, src: Src.Shard, type: 'crystal' });
+          w.projectiles.fire('shard', cur.x, cur.y, Math.atan2(o.y - cur.y, o.x - cur.x), 360, L.damage * 0.5, { r: 4, life: 0.6, src: Src.Shard, type: 'crystal', z: 8 });
         }
       }
       if (root && i === 0 && w.build.flags.l_storm) {
         const fork = w.enemies.nearest(cur.x, cur.y, L.range * w.stats.areaMul, hit);
-        if (fork) this.chain(cur.x, cur.y - 8, fork, L, Math.floor(jumps / 2), false);
+        if (fork) this.chain(cur.x, cur.y, fork, L, Math.floor(jumps / 2), false);
       }
       px = cur.x;
-      py = cur.y - 8;
+      py = cur.y;
+      pz = 8;
       dmg *= L.falloff;
       cur = w.enemies.nearest(cur.x, cur.y, L.range * w.stats.areaMul, hit);
     }
   }
 
-  private bolt(ax: number, ay: number, bx: number, by: number): void {
+  /** raio entre dois pontos do mundo (com alturas), desenhado no espaço da tela */
+  private bolt(wax: number, way: number, az: number, wbx: number, wby: number, bz: number): void {
     const b = this.bolts.acquire();
     if (!b) return;
+    const ax = iso.x(wax, way);
+    const ay = iso.y(wax, way) - az;
+    const bx = iso.x(wbx, wby);
+    const by = iso.y(wbx, wby) - bz;
     const d = Math.hypot(bx - ax, by - ay);
     b.life = 0.2;
     b.s.visible = true;
@@ -312,8 +322,8 @@ export class Weapons {
       w.projectiles.fire('shard', x, y, a, 300, L.shardDamage, { r: 4, life: 0.55, src: Src.Shard, type: 'crystal', pierce: 1 });
     }
     const frames = w.assets.anim('fx', 'lotus');
-    w.particles.emit({ tex: frames[0], frames, x, y, life: 0.4, s0: (R / 36) * 0.6, s1: R / 36, a0: 1, a1: 0.2, rot: off });
-    w.particles.emit({ tex: w.fx.ring, x, y, life: 0.3, s0: 0.2, s1: (R * 2) / 105, tint: 0x9ff4ff });
+    w.particles.emit({ tex: frames[0], frames, x, y, flat: true, life: 0.4, s0: (R / 36) * 0.85, s1: (R / 36) * 1.4, a0: 1, a1: 0.2 });
+    w.particles.emit({ tex: w.fx.ring, x, y, flat: true, life: 0.3, s0: 0.2, s1: (R * 2.8) / 105, tint: 0x9ff4ff });
     w.fx.shatter(x, y, 10);
     w.lighting.flash(x, y, 0x60e0ff, R * 2.2, 0.35, 1);
     w.sfx('sfx_glass', { volume: 0.55, gap: 0.06 });
@@ -326,7 +336,7 @@ export class Weapons {
     w.enemies.forRadius(x, y, 42, (e) => {
       w.damageEnemy(e, { amount: dmg * 0.6, type: 'fire', source: Src.Phoenix, burn: 4, burnDur: 2 });
     });
-    w.fx.explosion(x, y - 6, 0.8);
+    w.fx.at(6).explosion(x, y, 0.8);
     w.sfx('sfx_explosion', { volume: 0.25, gap: 0.08, rate: 1.4 });
   }
 
@@ -352,7 +362,7 @@ export class Weapons {
       const dmg = lanceL ? lanceL.damage : 40;
       for (let i = 0; i < 6; i++) {
         const a = (i / 6) * TAU + this.rot;
-        w.projectiles.fire('lance', w.hero.x + Math.cos(a) * 30, w.hero.y - 12 + Math.sin(a) * 24, a, 480, dmg, { pierce: 999, r: 7, life: 1.0, src: Src.Lance, type: 'fire', burn: 6 });
+        w.projectiles.fire('lance', w.hero.x + Math.cos(a) * 30, w.hero.y + Math.sin(a) * 30, a, 480, dmg, { pierce: 999, r: 7, life: 1.0, src: Src.Lance, type: 'fire', burn: 6 });
       }
       w.sfx('sfx_lance', { volume: 0.7 });
     }
@@ -369,8 +379,9 @@ export class Weapons {
     const R = L.radius * w.stats.areaMul;
     this.rot += dt * (2.4 + L.arcs * 0.15);
     const cx = h.x;
-    const cy = h.y - 8;
-    const sq = 0.8;
+    // a coroa fica no plano do chão (camada isométrica deitada): círculo no mundo
+    const cy = h.y;
+    const sq = 1;
     // aro e brilho
     const breathe = 1 + Math.sin(this.rot * 2) * 0.02;
     this.ring.position.set(cx, cy);
@@ -398,8 +409,10 @@ export class Weapons {
         const a = dir * this.rot + (arc / L.arcs) * TAU + (k - 1) * 0.2;
         const s = list[i];
         s.texture = frameI(i);
-        s.position.set(cx + Math.cos(a) * radius, cy + Math.sin(a) * radius * sq + 2);
-        s.zIndex = s.y + 4;
+        const fwx = cx + Math.cos(a) * radius;
+        const fwy = cy + Math.sin(a) * radius;
+        s.position.set(iso.x(fwx, fwy), iso.y(fwx, fwy) - 2);
+        s.zIndex = iso.depth(fwx, fwy) + 1;
         const sc = (k === 1 ? 0.95 : 0.7) * scale;
         s.scale.set(sc);
         s.alpha = 0.95;
@@ -414,11 +427,13 @@ export class Weapons {
       r.visible = i < nR;
       if (!r.visible) continue;
       const a = -this.rot * 0.5 + (i / nR) * TAU;
-      r.position.set(cx + Math.cos(a) * (R + 12), cy + Math.sin(a) * (R + 12) * sq);
+      const rwx = cx + Math.cos(a) * (R + 12);
+      const rwy = cy + Math.sin(a) * (R + 12);
+      r.position.set(iso.x(rwx, rwy), iso.y(rwx, rwy) - 10);
       r.alpha = 0.55 + Math.sin(this.rot * 3 + i) * 0.25;
       r.scale.set(0.8);
     }
-    if (!this.crownLight) this.crownLight = w.lighting.flash(cx, cy, 0xffa050, 150, Infinity, 1, () => ({ x: w.hero.x, y: w.hero.y - 8 }));
+    if (!this.crownLight) this.crownLight = w.lighting.flash(cx, cy, 0xffa050, 150, Infinity, 1, () => ({ x: w.hero.x, y: w.hero.y }));
     if (this.crownLight) this.crownLight.sprite.scale.set(((R + 110) * 2) / 128);
     // dano em contato com as chamas
     if (h.alive) {
@@ -444,7 +459,7 @@ export class Weapons {
         e.hitCd[Src.Crown] = now;
         const a = Math.atan2(e.y - h.y, e.x - h.x);
         w.damageEnemy(e, { amount: L.damage, type: 'fire', source: Src.Crown, knock: 28, kx: Math.cos(a), ky: Math.sin(a), burn: L.burn * burnMul, burnDur: 2 });
-        w.fx.hit(e.x, e.y - 6, 0xffa040, 0.6);
+        w.fx.at(6).hit(e.x, e.y, 0xffa040, 0.6);
       });
     }
     // Pulso expansivo

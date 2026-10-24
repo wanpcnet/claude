@@ -1,4 +1,5 @@
-import { BlurFilter, ColorMatrixFilter, Container, Sprite, Texture, type Filter } from 'pixi.js';
+import { BlurFilter, ColorMatrixFilter, Container, Matrix, Sprite, Texture, type Filter } from 'pixi.js';
+import { iso } from '../render/Iso';
 import { AdvancedBloomFilter } from 'pixi-filters';
 import type { Game } from '../game/Game';
 import type { AssetLoader } from '../game/AssetLoader';
@@ -58,7 +59,14 @@ export class World {
     entities: new Container(),
     fxAdd: new Container(),
     worldUi: new Container(),
+    /** camadas "deitadas" no plano do chão (matriz isométrica) */
+    flatBase: new Container(),
+    flatFx: new Container(),
   };
+  /** dimensões da imagem isométrica do solo (px de tela) */
+  groundW = 0;
+  groundH = 0;
+
   arena: Arena;
   hero: Hero;
   enemies: EnemySystem;
@@ -140,7 +148,16 @@ export class World {
 
     this.uiTex = { barFrame: game.uiTextures.barFrame, barHp: game.uiTextures.barHp, barBoss: game.uiTextures.barBoss };
     this.arena = new Arena(map);
+    iso.setArena(this.arena.height);
+    const gm = game.assets.ground[act.map];
+    this.groundW = gm?.width ?? this.arena.width;
+    this.groundH = gm?.height ?? this.arena.height;
+    this.particles.projector = iso;
+    this.floatText.projector = iso;
     const L = this.layers;
+    L.flatBase.setFromMatrix(iso.matrix());
+    L.flatFx.setFromMatrix(iso.matrix());
+    L.flatFx.blendMode = 'add';
     L.entities.sortableChildren = true;
     this.arena.build(this.assets, ground, L.ground, L.low, L.entities);
     this.lighting = new Lighting(this.assets.tex('fx', 'light'), 1280, 720);
@@ -168,8 +185,10 @@ export class World {
     const skin = game.currentSkin();
     this.weapons.applySkin(skin.tint, skin.flame);
 
-    this.base.addChild(L.ground, L.low, L.groundFx, this.weapons.crownGround, this.hazards.layer, L.shadows, this.pickups.layer, L.entities, this.projectiles.enemyLayer);
-    this.fxRoot.addChild(this.projectiles.trails, this.projectiles.layer, this.particles.normal, L.fxAdd, this.hazards.ringLayer, this.enemies.bars, this.floatText.layer, L.worldUi);
+    L.flatBase.addChild(L.groundFx, this.weapons.crownGround, this.hazards.layer, L.shadows);
+    L.flatFx.addChild(this.hazards.ringLayer);
+    this.base.addChild(L.ground, L.low, L.flatBase, this.pickups.layer, L.entities, this.projectiles.enemyLayer);
+    this.fxRoot.addChild(this.projectiles.trails, this.projectiles.layer, this.particles.normal, L.flatFx, L.fxAdd, this.enemies.bars, this.floatText.layer, L.worldUi);
     L.fxAdd.addChild(this.particles.add);
     this.vignette = new Sprite(this.assets.tex('fx', 'vignette'));
     this.indicator = new Container();
@@ -190,7 +209,7 @@ export class World {
       s.tint = 0x9aa0b8;
       s.alpha = 0.05 + (i % 3) * 0.015;
       s.scale.set(5 + (i % 4) * 1.5, 3 + (i % 3));
-      s.position.set(((i * 397) % this.arena.width), ((i * 263) % this.arena.height));
+      s.position.set(((i * 397) % this.groundW), ((i * 263) % this.groundH));
       this.fog.addChild(s);
       this.fogSprites.push({ s, vx: 6 + (i % 5) * 3 });
     }
@@ -228,19 +247,22 @@ export class World {
   resize(w: number, h: number): void {
     this.screenW = w;
     this.screenH = h;
-    const z = Math.min(h / 540, w / 400);
+    const z = Math.min(h / 470, w / 380);
     this.zoom = Math.max(1, Math.round(z * 8) / 8);
     this.lighting.resize(w, h);
     this.vignette.width = w;
     this.vignette.height = h;
   }
 
+  /** raio (mundo) que cobre a tela na projeção isométrica */
   viewRadius(): number {
-    return Math.hypot(this.screenW, this.screenH) / (2 * this.zoom);
+    const hw = this.screenW / 2 / this.zoom;
+    const hh = this.screenH / 2 / this.zoom;
+    return Math.max(hw / (Math.SQRT2 * iso.s), (hh * Math.SQRT2) / iso.s) * 1.05;
   }
 
   screenToWorld(sx: number, sy: number): { x: number; y: number } {
-    return { x: (sx - this.base.x) / this.zoom, y: (sy - this.base.y) / this.zoom };
+    return iso.toWorld((sx - this.base.x) / this.zoom, (sy - this.base.y) / this.zoom);
   }
 
   runState(): RunState {
@@ -305,7 +327,7 @@ export class World {
       e.armorHp -= absorbed;
       amt -= absorbed;
       if (e.armorHp <= 0) {
-        this.fx.shatter(e.x, e.y - 20, 18, true);
+        this.fx.at(20).shatter(e.x, e.y, 18, true);
         this.sfx('sfx_armor_break', { volume: 0.9 });
         this.announce('A armadura de coral se partiu!');
         this.shake(5);
@@ -346,7 +368,7 @@ export class World {
     }
     if (this.stats.lifesteal > 0 && this.hero.alive) this.lifestealPool += amt * this.stats.lifesteal;
     const important = !!e.boss || !!e.def.elite;
-    if (!silent && amt >= 1 && (amt >= 40 || important || hit.heavy)) this.floatText.spawn(e.x, e.y - e.radius * 2 - 6, String(Math.round(amt)), DMG_COLOR[hit.type], amt >= 40);
+    if (!silent && amt >= 1 && (amt >= 40 || important || hit.heavy)) this.floatText.spawn(e.x, e.y, String(Math.round(amt)), DMG_COLOR[hit.type], amt >= 40, e.radius * 2 + 6 + e.z);
     if (e.hp <= 0) {
       this.killEnemy(e);
       return true;
@@ -357,7 +379,7 @@ export class World {
   private killEnemy(e: Enemy): void {
     this.enemies.kill(e);
     const big = e.boss ? 3 : e.def.elite ? 2 : e.radius > 12 ? 1.3 : 1;
-    this.fx.death(e.x, e.y - e.radius, e.def.deathTint, big);
+    this.fx.at(e.radius).death(e.x, e.y, e.def.deathTint, big);
     this.sfx('sfx_death', { volume: 0.22 * Math.min(2, big), gap: 0.035, max: 5 });
     if (!e.isSummon || rng.chance(0.3)) {
       this.kills += e.isSummon ? 0 : 1;
@@ -370,7 +392,7 @@ export class World {
     if (e.def.elite) {
       this.hitstop(0.1);
       this.shake(6);
-      this.fx.explosion(e.x, e.y - 20, 1.6, 0x80ffff);
+      this.fx.at(20).explosion(e.x, e.y, 1.6, 0x80ffff);
     }
     if (e.boss) {
       this.hitstop(0.2);
@@ -396,7 +418,7 @@ export class World {
     this.sfx('sfx_anchor', { volume: 1 });
     this.shake(7);
     this.hitstop(0.08);
-    this.arena.lights.push({ x, y: y - 20, color: 0xffb050, radius: 260, flicker: true, phase: 0 });
+    this.arena.lights.push({ x, y, color: 0xffb050, radius: 260, flicker: true, phase: 0 });
     this.lighting.setStatic(this.arena.lights);
     const [r, g, b] = this.lighting.ambient;
     this.lighting.ambient = [Math.min(1, r + 0.08), g + 0.02, b - 0.04];
@@ -546,7 +568,7 @@ export class World {
   private updateCamera(dt: number): void {
     const h = this.hero;
     let tx = h.x + h.vx * 0.25;
-    let ty = h.y - 12 + h.vy * 0.2;
+    let ty = h.y + h.vy * 0.2;
     if (this.introT >= 0) {
       const k = clamp(this.introT / 0.6, 0, 1) * (this.introT > 2.1 ? clamp((2.6 - this.introT) / 0.5, 0, 1) : 1);
       tx = h.x + (this.introPoint.x - h.x) * k;
@@ -561,13 +583,16 @@ export class World {
     const hw = this.screenW / 2 / this.zoom;
     const hh = this.screenH / 2 / this.zoom;
     const A = this.arena;
-    const cx = A.width > hw * 2 ? clamp(this.camX, hw, A.width - hw) : A.width / 2;
-    const cy = A.height > hh * 2 ? clamp(this.camY, hh, A.height - hh) : A.height / 2;
+    // câmera no espaço isométrico, limitada à imagem do solo
+    const sxw = iso.x(this.camX, this.camY);
+    const syw = iso.y(this.camX, this.camY) - 12;
+    const csx = this.groundW > hw * 2 ? clamp(sxw, hw, this.groundW - hw) : this.groundW / 2;
+    const csy = this.groundH > hh * 2 ? clamp(syw, hh, this.groundH - hh) : this.groundH / 2;
     this.shakeAmt = Math.max(0, this.shakeAmt - dt * 30);
-    const sx = (Math.random() - 0.5) * this.shakeAmt;
-    const sy = (Math.random() - 0.5) * this.shakeAmt;
-    const px = Math.round(-cx * this.zoom + this.screenW / 2 + sx);
-    const py = Math.round(-cy * this.zoom + this.screenH / 2 + sy);
+    const shx = (Math.random() - 0.5) * this.shakeAmt;
+    const shy = (Math.random() - 0.5) * this.shakeAmt;
+    const px = Math.round(-csx * this.zoom + this.screenW / 2 + shx);
+    const py = Math.round(-csy * this.zoom + this.screenH / 2 + shy);
     for (const c of [this.base, this.fxRoot]) {
       c.position.set(px, py);
       c.scale.set(this.zoom);
@@ -575,13 +600,13 @@ export class World {
     // parallax da neblina
     const pf = 1.12;
     this.fog.scale.set(this.zoom * pf);
-    this.fog.position.set(this.screenW / 2 - cx * this.zoom * pf, this.screenH / 2 - cy * this.zoom * pf);
+    this.fog.position.set(this.screenW / 2 - csx * this.zoom * pf, this.screenH / 2 - csy * this.zoom * pf);
     for (const f of this.fogSprites) {
       f.s.x += f.vx * dt;
-      if (f.s.x > cx + hw * 1.6) f.s.x = cx - hw * 1.6;
-      if (f.s.x < cx - hw * 1.8) f.s.x = cx + hw * 1.5;
-      if (f.s.y > cy + hh * 1.8) f.s.y = cy - hh * 1.6;
-      if (f.s.y < cy - hh * 1.8) f.s.y = cy + hh * 1.6;
+      if (f.s.x > csx + hw * 1.6) f.s.x = csx - hw * 1.6;
+      if (f.s.x < csx - hw * 1.8) f.s.x = csx + hw * 1.5;
+      if (f.s.y > csy + hh * 1.8) f.s.y = csy - hh * 1.6;
+      if (f.s.y < csy - hh * 1.8) f.s.y = csy + hh * 1.6;
     }
     // poeira/esporos suspensos, em volume muito moderado
     this.moteT -= dt;
@@ -589,13 +614,14 @@ export class World {
       this.moteT = 0.12 / Math.max(0.3, this.fx.density);
       const theme = this.arena.map.theme;
       const tint = theme === 'glass' ? 0x9ff4ff : theme === 'sunken' ? 0xc8a0ff : 0xffc080;
-      this.particles.emit({ tex: this.fx.dot, x: cx + (Math.random() - 0.5) * hw * 2, y: cy + (Math.random() - 0.5) * hh * 2, vx: (Math.random() - 0.5) * 10, vy: -6 - Math.random() * 8, life: 3 + Math.random() * 2, s0: 0.7, s1: 1.0, a0: 0.5, a1: 0, tint });
+      const R = this.viewRadius();
+      this.particles.emit({ tex: this.fx.dot, x: this.camX + (Math.random() - 0.5) * R * 1.4, y: this.camY + (Math.random() - 0.5) * R * 1.4, h: Math.random() * 40, vx: (Math.random() - 0.5) * 10, vy: -6 - Math.random() * 8, life: 3 + Math.random() * 2, s0: 0.7, s1: 1.0, a0: 0.5, a1: 0, tint });
     }
     // culling simples de props fora da tela
-    const vx0 = cx - hw - 140;
-    const vx1 = cx + hw + 140;
-    const vy0 = cy - hh - 60;
-    const vy1 = cy + hh + 200;
+    const vx0 = csx - hw - 140;
+    const vx1 = csx + hw + 140;
+    const vy0 = csy - hh - 60;
+    const vy1 = csy + hh + 200;
     for (const p of A.props) {
       const s = p.sprite;
       s.visible = s.x > vx0 && s.x < vx1 && s.y > vy0 && s.y < vy1;
@@ -603,8 +629,9 @@ export class World {
     // indicador de objetivo na borda da tela
     const op = this.director.objectivePoint;
     if (op && this.introT < 0) {
-      const ox = op.x * this.zoom + px;
-      const oy = op.y * this.zoom + py;
+      const o = this.worldToScreen(op.x, op.y);
+      const ox = o.x;
+      const oy = o.y;
       const m = 48;
       const off = ox < m || oy < m || ox > this.screenW - m || oy > this.screenH - m;
       this.indicator.visible = off;
@@ -622,11 +649,18 @@ export class World {
 
   /** chamado pelo Game a cada quadro renderizado */
   render(): void {
-    this.lighting.render(this.game.app.renderer, this.base.x, this.base.y, this.zoom);
+    this.lighting.render(this.game.app.renderer, this.groundMatrix());
+  }
+
+  /** mundo (plano do chão) → tela, incluindo projeção isométrica, zoom e câmera */
+  groundMatrix(): Matrix {
+    const m = iso.matrix();
+    const z = this.zoom;
+    return new Matrix(m.a * z, m.b * z, m.c * z, m.d * z, m.tx * z + this.base.x, m.ty * z + this.base.y);
   }
 
   worldToScreen(x: number, y: number): { x: number; y: number } {
-    return { x: x * this.zoom + this.base.x, y: y * this.zoom + this.base.y };
+    return { x: iso.x(x, y) * this.zoom + this.base.x, y: iso.y(x, y) * this.zoom + this.base.y };
   }
 
   destroy(): void {

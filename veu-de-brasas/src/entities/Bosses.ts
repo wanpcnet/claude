@@ -3,6 +3,7 @@ import type { World } from '../world/World';
 import { rng } from '../utils/rng';
 import { TAU } from '../utils/math';
 import { Src } from '../content/types';
+import { iso } from '../render/Iso';
 
 /**
  * Batráquio Colossal: salto telegrafado com onda de choque, leque de lava e fase enfurecida.
@@ -54,7 +55,7 @@ export class ToadBoss implements BossController {
             this.anim(e, 'spit', 6, false);
             w.sfx('sfx_warn', { volume: 0.5 });
             const ang = Math.atan2(h.y - e.y, h.x - e.x);
-            w.hazards.cone(e.x, e.y - 20, ang, 260, rage ? 0.75 : 0.6, 0.7, 0, 0xff8040);
+            w.hazards.cone(e.x, e.y, ang, 260, rage ? 0.75 : 0.6, 0.7, 0, 0xff8040);
             e.a1 = ang;
           } else {
             this.jumpsLeft = rage ? 2 : 1;
@@ -80,7 +81,8 @@ export class ToadBoss implements BossController {
         e.x = e.a1 + (e.ax - e.a1) * t;
         e.y = e.a2 + (e.ay - e.a2) * t;
         e.z = Math.sin(t * Math.PI) * 160;
-        e.shadow.scale.set(5 * (1 - Math.sin(t * Math.PI) * 0.35), 3 * (1 - Math.sin(t * Math.PI) * 0.35));
+        const k = 1 - Math.sin(t * Math.PI) * 0.35;
+        e.shadow.scale.set(((e.radius * 2.6) / 32) * k, ((e.radius * 2.6) / 14) * k);
         if (t >= 1) {
           e.z = 0;
           e.state = 'recover';
@@ -90,8 +92,8 @@ export class ToadBoss implements BossController {
           w.sfx('sfx_land', { volume: 1 });
           w.shake(8);
           w.hitstop(0.06);
-          w.fx.dust(e.x, e.y + 20, 14);
-          w.fx.smokeBurst(e.x, e.y + 20, 8, 2);
+          w.fx.dust(e.x + 14, e.y + 14, 14);
+          w.fx.smokeBurst(e.x + 14, e.y + 14, 8, 2);
           w.hazards.ring(e.x, e.y, 0, 280, 400, 24, rage ? 14 : 12, 0xffa060);
           if (rage) w.hazards.ring(e.x, e.y, 0.55, 240, 360, 24, 12, 0xff6030);
           w.enemies.forRadius(e.x, e.y, 90, (o) => {
@@ -107,7 +109,7 @@ export class ToadBoss implements BossController {
           else {
             e.state = 'move';
             e.st = 0;
-            e.shadow.scale.set(5, 3);
+            e.shadow.scale.set((e.radius * 2.6) / 32, (e.radius * 2.6) / 14);
           }
         }
         break;
@@ -118,9 +120,9 @@ export class ToadBoss implements BossController {
         const gap = 0.45;
         if (e.st > 0.7 + e.a4 * gap && e.a4 < waves) {
           const ang = e.a4 === 0 ? e.a1 : Math.atan2(h.y - e.y, h.x - e.x);
-          w.projectiles.fan('lava', e.x, e.y - 22, ang + (e.a4 % 2 ? 0.08 : 0), rage ? 9 : 7, rage ? 1.5 : 1.2, 160, 10);
+          w.projectiles.fan('lava', e.x + 14, e.y + 14, ang + (e.a4 % 2 ? 0.08 : 0), rage ? 9 : 7, rage ? 1.5 : 1.2, 160, 10, 28);
           w.sfx('sfx_fire', { volume: 0.8 });
-          w.fx.fire(e.x, e.y - 20, 8, 20);
+          w.fx.at(20).fire(e.x, e.y, 8, 20);
           e.a4++;
         }
         if (e.st > 0.7 + waves * gap + 0.4) {
@@ -158,7 +160,7 @@ export class ToadBoss implements BossController {
   }
 
   onDeath(e: Enemy): void {
-    this.w.fx.explosion(e.x, e.y - 40, 2.4);
+    this.w.fx.at(40).explosion(e.x, e.y, 2.4);
     this.w.shake(10);
   }
 }
@@ -201,7 +203,7 @@ export class HeartBoss implements BossController {
     this.patternT += dt;
     if (this.patternT < 0) return;
     const ox = e.x;
-    const oy = e.y - 10;
+    const oy = e.y;
     if (this.phase === 0) {
       // espiral de cristais com 4 braços e pausas para respirar
       this.spin += dt * 1.1;
@@ -242,7 +244,7 @@ export class HeartBoss implements BossController {
         this.sub++;
         const gapAng = Math.atan2(h.y - oy, h.x - ox) + rng.range(-1.2, 1.2);
         w.hazards.ring(ox, oy, 0.9, 210, 460, 26, 16, 0xff8040, 0.9, gapAng);
-        w.particles.emit({ tex: w.fx.streak, x: ox + Math.cos(gapAng) * 90, y: oy + Math.sin(gapAng) * 90, rot: gapAng, life: 0.9, s0: 2.5, s1: 2.5, a0: 1, a1: 0.2, tint: 0x80ffa0 });
+        w.particles.emit({ tex: w.fx.streak, x: ox + Math.cos(gapAng) * 90, y: oy + Math.sin(gapAng) * 90, rot: iso.angle(Math.cos(gapAng), Math.sin(gapAng)), life: 0.9, s0: 2.5, s1: 2.5, a0: 1, a1: 0.2, tint: 0x80ffa0 });
         w.sfx('sfx_warn', { volume: 0.5 });
         if (this.sub % 2 === 0) w.projectiles.radial('lava', ox, oy, 16, 140, 12, this.sub * 0.2);
       }

@@ -5,6 +5,7 @@ import type { Enemy } from '../entities/Enemy';
 import { ToadBoss, HeartBoss } from '../entities/Bosses';
 import { rng } from '../utils/rng';
 import { TAU } from '../utils/math';
+import { iso } from '../render/Iso';
 
 const SIDE_ANGLE: Record<Side, number> = { east: 0, south: Math.PI / 2, west: Math.PI, north: -Math.PI / 2 };
 
@@ -115,7 +116,7 @@ export class Director {
     e.sprite.visible = true;
     e.sprite.alpha = 1;
     e.shadow.visible = true;
-    e.shadow.scale.set(5, 3);
+    e.shadow.scale.set((e.radius * 2.6) / 32, (e.radius * 2.6) / 14);
     this.bossEnemy = e;
     this.target = e;
     w.setBoss(e);
@@ -299,13 +300,13 @@ export class Director {
       const a = this.marker('A');
       this.sigil.rotation += dt * (0.3 + p * 2);
       this.sigil.alpha = 0.35 + p * 0.6 + (inside ? Math.sin(this.stageT * 6) * 0.1 : 0);
-      this.sigil.scale.set(1.1, 0.9);
+      this.sigil.scale.set(1.15, 1.15);
       this.beam.visible = p > 0;
-      this.beam.position.set(a.x, a.y - 10);
+      this.beam.position.set(iso.x(a.x, a.y - 18), iso.y(a.x, a.y - 18) - 40);
       this.beam.scale.set(1 + p, 0.4 + p * 1.6);
       this.beam.alpha = p * 0.8;
       this.beam.tint = 0xffc070;
-      if (inside && this.stageT % 0.1 < dt) w.particles.emit({ tex: w.fx.ember, x: a.x + rng.range(-50, 50), y: a.y + rng.range(-10, 30), vy: -60 - p * 60, life: 0.9, s0: 1.5, s1: 0.3, tint: 0xffc060 });
+      if (inside && this.stageT % 0.1 < dt) w.particles.emit({ tex: w.fx.ember, x: a.x + rng.range(-50, 50), y: a.y + rng.range(-40, 50), vy: -60 - p * 60, life: 0.9, s0: 1.5, s1: 0.3, tint: 0xffc060 });
       if (p >= 1) {
         w.activateAnchor(a.x, a.y);
         this.sigil.visible = false;

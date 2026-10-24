@@ -6,6 +6,7 @@ import { Pool } from '../utils/Pool';
 import { SpatialHash } from '../utils/SpatialHash';
 import { rng } from '../utils/rng';
 import { TAU, clamp } from '../utils/math';
+import { iso } from '../render/Iso';
 import type { World } from '../world/World';
 
 const MAX_ENEMIES = 700;
@@ -86,9 +87,9 @@ export class EnemySystem {
     s.alpha = 1;
     s.tint = 0xffffff;
     s.texture = e.frames[0];
-    s.position.set(x, y);
+    s.position.set(iso.x(x, y), iso.y(x, y));
     e.shadow.visible = true;
-    e.shadow.scale.set((e.radius * 2.4) / 32, (e.radius * 1.4) / 14);
+    e.shadow.scale.set((e.radius * 2.4) / 32, (e.radius * 2.4) / 14);
     if (def.elite) this.attachBar(e);
     return e;
   }
@@ -209,7 +210,7 @@ export class EnemySystem {
         if (e.burnTick <= 0) {
           e.burnTick = 0.5;
           w.damageEnemy(e, { amount: e.burnDps * 0.5, type: 'fire', source: Src.Burn }, true);
-          if (rng.chance(0.5 * w.fx.density)) w.fx.fire(e.x, e.y - e.radius, 1, e.radius * 0.5);
+          if (rng.chance(0.5 * w.fx.density)) w.fx.at(e.radius).fire(e.x, e.y, 1, e.radius * 0.5);
           if (!e.alive) continue;
         }
       }
@@ -271,8 +272,8 @@ export class EnemySystem {
 
   private place(e: Enemy): void {
     const s = e.sprite;
-    s.position.set(e.x, e.y - e.z);
-    s.zIndex = e.y;
+    s.position.set(iso.x(e.x, e.y), iso.y(e.x, e.y) - e.z);
+    s.zIndex = iso.depth(e.x, e.y);
     e.shadow.position.set(e.x, e.y + 1);
     if (e.state !== 'spawn') {
       let sx = e.scale;
@@ -288,7 +289,7 @@ export class EnemySystem {
     }
     if (e.def.fly) e.shadow.alpha = 0.3;
     if (e.bar && e.barFill) {
-      e.bar.position.set(e.x - 29, e.y - e.sprite.height * (e.sprite.anchor.y) - 12);
+      e.bar.position.set(iso.x(e.x, e.y) - 29, iso.y(e.x, e.y) - e.z - e.sprite.height * e.sprite.anchor.y - 12);
       e.barFill.width = Math.max(0, 54 * (e.hp / e.maxHp));
       e.barFill.texture = e.armorHp > 0 ? this.w.uiTex.barBoss : this.w.uiTex.barHp;
     }
@@ -309,7 +310,8 @@ export class EnemySystem {
   private setMove(e: Enemy, x: number, y: number, speed: number): void {
     e.mvx = x * speed;
     e.mvy = y * speed;
-    if (Math.abs(x) > 0.15) e.facing = x > 0 ? 1 : -1;
+    const sx = x - y; // componente horizontal na tela
+    if (Math.abs(sx) > 0.15) e.facing = sx > 0 ? 1 : -1;
   }
 
   private ai(e: Enemy, dt: number, heavy: boolean): void {
@@ -441,7 +443,7 @@ export class EnemySystem {
             e.st = 0;
             e.mvx = e.mvy = 0;
             e.a1 = Math.atan2(dy, dx);
-            e.facing = dx > 0 ? 1 : -1;
+            e.facing = dx - dy > 0 ? 1 : -1;
             this.setAnim(e, 'shell_windup', true, 16);
             w.hazards.line(e.x, e.y, e.a1, 300, 34, 0.9, 0, 0xff5030);
           }
@@ -497,7 +499,7 @@ export class EnemySystem {
             e.a2 = e.y;
             e.ax = tx;
             e.ay = ty;
-            e.facing = tx > e.x ? 1 : -1;
+            e.facing = tx - e.x - (ty - e.y) > 0 ? 1 : -1;
             w.hazards.circle(tx, ty, 30, 0.9, def.damage, 0x60ffd0);
           }
         } else if (e.state === 'windup') {
@@ -544,7 +546,7 @@ export class EnemySystem {
           my += (dx / d) * strafe * 0.5;
           const l = Math.hypot(mx, my) || 1;
           this.setMove(e, mx / l, my / l, e.speed);
-          e.facing = dx > 0 ? 1 : -1;
+          e.facing = dx - dy > 0 ? 1 : -1;
           if (e.attackCd <= 0 && d < 320) {
             e.state = 'windup';
             e.st = 0;
@@ -552,7 +554,7 @@ export class EnemySystem {
             this.setAnim(e, 'ghost_cast', false, 6);
           }
         } else if (e.state === 'windup' && e.st > 0.5) {
-          w.projectiles.enemyFire('orb', e.x, e.y - 18, Math.atan2(h.y - 10 - (e.y - 18), h.x - e.x), 135, def.damage, 3.5);
+          w.projectiles.enemyFire('orb', e.x, e.y, Math.atan2(h.y - e.y, h.x - e.x), 135, def.damage, 3.5, 0, 18);
           w.sfx('sfx_orb', { volume: 0.3, gap: 0.12 });
           e.state = 'recover';
           e.st = 0;
@@ -573,13 +575,13 @@ export class EnemySystem {
             e.st = 0;
             e.mvx = e.mvy = 0;
             e.a1 = Math.atan2(dy, dx);
-            e.facing = dx > 0 ? 1 : -1;
+            e.facing = dx - dy > 0 ? 1 : -1;
             this.setAnim(e, 'guardian_windup', false, 4);
-            w.hazards.cone(e.x, e.y - 8, e.a1, 200, 0.55, 0.95, def.damage, 0xff7050);
+            w.hazards.cone(e.x, e.y, e.a1, 200, 0.55, 0.95, def.damage, 0xff7050);
             w.sfx('sfx_warn', { volume: 0.4 });
           }
         } else if (e.state === 'windup' && e.st > 0.95) {
-          w.projectiles.fan('coral', e.x, e.y - 10, e.a1, broken ? 11 : 9, 1.0, 210, 9);
+          w.projectiles.fan('coral', e.x, e.y, e.a1, broken ? 11 : 9, 1.0, 210, 9);
           w.fx.shatter(e.x + Math.cos(e.a1) * 30, e.y + Math.sin(e.a1) * 30, 8, true);
           w.shake(3);
           w.sfx('sfx_glass', { volume: 0.6 });
@@ -609,7 +611,7 @@ export class EnemySystem {
           my += (dx / d) * 0.6;
           const l = Math.hypot(mx, my) || 1;
           this.setMove(e, mx / l, my / l, e.speed);
-          e.facing = dx > 0 ? 1 : -1;
+          e.facing = dx - dy > 0 ? 1 : -1;
           e.a3 -= dt; // recarga de invocação
           if (e.a3 <= 0) {
             e.a3 = 7;

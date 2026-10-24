@@ -2,6 +2,7 @@ import { Container, Sprite, Texture } from 'pixi.js';
 import { Pool } from '../utils/Pool';
 import type { World } from '../world/World';
 import { rng } from '../utils/rng';
+import { iso } from '../render/Iso';
 
 export type PickKind = 'gem_s' | 'gem_m' | 'gem_l' | 'heal' | 'energy' | 'coin' | 'essence' | 'chest';
 
@@ -96,7 +97,7 @@ export class Pickups {
       if (!p.active) continue;
       p.t += dt;
       const dx = h.x - p.x;
-      const dy = h.y - 8 - p.y;
+      const dy = h.y - p.y;
       const d = Math.hypot(dx, dy) || 1;
       if (!p.magnet && d < mag && p.kind !== 'chest' && h.alive) p.magnet = true;
       if (p.magnet) {
@@ -110,7 +111,7 @@ export class Pickups {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       const bob = Math.sin(p.t * 5 + p.x) * 1.5;
-      p.sprite.position.set(p.x, p.y + bob);
+      p.sprite.position.set(iso.x(p.x, p.y), iso.y(p.x, p.y) + bob - 3);
       if (p.kind === 'chest' && Math.floor(p.t * 3) % 2 === 0) p.sprite.alpha = 1;
       if (d < (p.kind === 'chest' ? 22 : 12) && h.alive) this.collect(p);
       else if (p.t > 22 && p.kind.startsWith('gem') && !p.magnet) p.magnet = true;
@@ -134,12 +135,12 @@ export class Pickups {
       case 'energy':
         w.hero.energy = Math.min(100, w.hero.energy + 40);
         w.sfx('sfx_xp', { volume: 0.5, rate: 0.7 });
-        w.particles.emit({ tex: w.fx.ring, x: w.hero.x, y: w.hero.y - 12, life: 0.35, s0: 0.1, s1: 0.6, tint: 0xffb040 });
+        w.particles.emit({ tex: w.fx.ring, x: w.hero.x, y: w.hero.y, flat: true, life: 0.35, s0: 0.1, s1: 0.6, tint: 0xffb040 });
         break;
       case 'coin':
         w.coins += p.value;
         w.sfx('sfx_xp', { volume: 0.5, rate: 0.85 });
-        w.floatText.spawn(w.hero.x, w.hero.y - 40, '+' + p.value, 0xe8a266, true);
+        w.floatText.spawn(w.hero.x, w.hero.y, '+' + p.value, 0xe8a266, true, 40);
         break;
       case 'essence':
         w.rerolls++;

@@ -1,5 +1,6 @@
 import { BitmapText, Container } from 'pixi.js';
 import { Pool } from '../utils/Pool';
+import type { Projector } from './Particles';
 
 interface FT {
   active: boolean;
@@ -16,6 +17,7 @@ export class FloatText {
   private pool: Pool<FT>;
   private budget = 0;
   enabled = true;
+  projector: Projector | null = null;
 
   constructor() {
     this.pool = new Pool<FT>(() => {
@@ -27,7 +29,7 @@ export class FloatText {
     }, 30, 50);
   }
 
-  spawn(x: number, y: number, text: string, color: number, big = false): void {
+  spawn(x: number, y: number, text: string, color: number, big = false, h = 0): void {
     if (!this.enabled) return;
     if (!big) {
       if (this.budget <= 0) return;
@@ -38,7 +40,9 @@ export class FloatText {
     f.t.text = text;
     f.t.tint = color;
     f.t.visible = true;
-    f.t.position.set(x + (Math.random() - 0.5) * 8, y);
+    const px = this.projector ? this.projector.x(x, y) : x;
+    const py = (this.projector ? this.projector.y(x, y) : y) - h;
+    f.t.position.set(px + (Math.random() - 0.5) * 8, py);
     f.t.scale.set(big ? 0.9 : 0.6);
     f.t.alpha = 1;
     f.life = 0;
