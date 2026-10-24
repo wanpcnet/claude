@@ -91,7 +91,7 @@ export class Pickups {
   update(dt: number): void {
     const w = this.w;
     const h = w.hero;
-    const mag = 52 * w.stats.magnet;
+    const mag = 72 * w.stats.magnet;
     for (const p of this.pool.items) {
       if (!p.active) continue;
       p.t += dt;
@@ -113,7 +113,7 @@ export class Pickups {
       p.sprite.position.set(p.x, p.y + bob);
       if (p.kind === 'chest' && Math.floor(p.t * 3) % 2 === 0) p.sprite.alpha = 1;
       if (d < (p.kind === 'chest' ? 22 : 12) && h.alive) this.collect(p);
-      else if (p.t > 60 && p.kind.startsWith('gem') && !p.magnet) p.magnet = true;
+      else if (p.t > 22 && p.kind.startsWith('gem') && !p.magnet) p.magnet = true;
     }
   }
 

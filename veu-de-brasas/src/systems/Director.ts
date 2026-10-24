@@ -271,15 +271,14 @@ export class Director {
     const target = amb.target * (this.relief > 0 ? 0.6 : 1) * this.densityMul * w.densityMul;
     if (w.enemies.aliveCount < target) {
       this.spawnAcc += amb.rate * dt * this.densityMul;
+      // `rate` é em inimigos por segundo; Ferrugíneos chegam em pequenos grupos
       while (this.spawnAcc >= 1) {
-        this.spawnAcc -= 1;
         const types = Object.keys(amb.mix);
         const t = rng.weighted(types, (k) => amb.mix[k]) ?? 'rust';
+        const n = t === 'rust' ? Math.min(Math.floor(this.spawnAcc), rng.int(2, 4)) : 1;
+        this.spawnAcc -= n;
         const p = this.spawnPoint('around');
-        if (p) {
-          const n = t === 'rust' ? rng.int(2, 4) : 1;
-          for (let i = 0; i < n; i++) w.enemies.spawn(t, p.x + rng.range(-14, 14), p.y + rng.range(-10, 10));
-        }
+        if (p) for (let i = 0; i < n; i++) w.enemies.spawn(t, p.x + rng.range(-14, 14), p.y + rng.range(-10, 10));
       }
     }
     // objetivo atual

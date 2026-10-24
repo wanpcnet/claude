@@ -40,7 +40,7 @@ export const ACTS: ActScript[] = [
     title: 'Ato I — Jardim das Cinzas',
     subtitle: 'Reacenda a primeira Âncora do Véu',
     stages: [
-      { type: 'kills', goal: 90, text: 'Dissipe a maré para despertar a Âncora' },
+      { type: 'kills', goal: 160, text: 'Dissipe a maré para despertar a Âncora' },
       { type: 'anchor', channel: 18, text: 'Reacenda a Âncora: permaneça no círculo' },
       { type: 'elite', enemy: 'guardian', at: 'A', text: 'Derrote o Guardião de Coral' },
     ],
@@ -51,7 +51,7 @@ export const ACTS: ActScript[] = [
       { from: 140, target: 90, rate: 8, mix: { rust: 5, spider: 2, slime: 1, frog: 1 } },
       { from: 210, target: 120, rate: 10, mix: { rust: 5, spider: 3, slime: 2, frog: 1 } },
     ],
-    channelAmbient: { from: 0, target: 140, rate: 14, mix: { rust: 6, spider: 3, slime: 1, frog: 1 } },
+    channelAmbient: { from: 0, target: 90, rate: 6, mix: { rust: 6, spider: 3, slime: 1, frog: 1 } },
     bossAmbient: { from: 0, target: 40, rate: 4, mix: { rust: 3, spider: 1 } },
     waves: [
       { t: 42, enemy: 'rust', count: 26, side: 'east', formation: 'arc' },
@@ -76,7 +76,7 @@ export const ACTS: ActScript[] = [
     title: 'Ato II — Bosque de Vidro',
     subtitle: 'O vidro canta onde a fenda respira',
     stages: [
-      { type: 'kills', goal: 130, text: 'Abra caminho pelo Bosque de Vidro' },
+      { type: 'kills', goal: 260, text: 'Abra caminho pelo Bosque de Vidro' },
       { type: 'elite', enemy: 'priestess', at: 'E', text: 'A Sacerdotisa de Vidro guarda a praça' },
       { type: 'anchor', channel: 22, text: 'Reacenda a segunda Âncora atrás das formações' },
       { type: 'boss', boss: 'toad', at: 'E', text: 'O Batráquio Colossal desperta!' },
@@ -87,7 +87,7 @@ export const ACTS: ActScript[] = [
       { from: 140, target: 140, rate: 11, mix: { rust: 5, spider: 3, wasp: 3, ghost: 2, frog: 1, shell: 1 } },
       { from: 240, target: 180, rate: 13, mix: { rust: 6, spider: 3, wasp: 3, ghost: 2, frog: 2, shell: 1 } },
     ],
-    channelAmbient: { from: 0, target: 200, rate: 16, mix: { rust: 6, spider: 3, wasp: 3, ghost: 2, shell: 1 } },
+    channelAmbient: { from: 0, target: 160, rate: 9, mix: { rust: 6, spider: 3, wasp: 3, ghost: 2, shell: 1 } },
     bossAmbient: { from: 0, target: 50, rate: 4, mix: { rust: 3, frog: 1, wasp: 1 } },
     waves: [
       { t: 20, enemy: 'wasp', count: 10, side: 'north', formation: 'arc' },
@@ -108,7 +108,7 @@ export const ACTS: ActScript[] = [
     title: 'Ato III — Santuário Submerso',
     subtitle: 'O Coração do Véu pulsa além do altar',
     stages: [
-      { type: 'kills', goal: 150, text: 'Atravesse o Santuário Submerso' },
+      { type: 'kills', goal: 320, text: 'Atravesse o Santuário Submerso' },
       { type: 'anchor', channel: 26, text: 'Reacenda a terceira Âncora no Altar de Cobre' },
       { type: 'boss', boss: 'heart', at: 'B', text: 'Enfrente o Coração do Véu na fenda' },
     ],
@@ -117,7 +117,7 @@ export const ACTS: ActScript[] = [
       { from: 70, target: 160, rate: 13, mix: { rust: 6, spider: 3, ghost: 2, frog: 2, shell: 1, wasp: 2 } },
       { from: 170, target: 230, rate: 16, mix: { rust: 7, spider: 4, ghost: 2, frog: 2, shell: 2, wasp: 2, slime: 1 } },
     ],
-    channelAmbient: { from: 0, target: 280, rate: 20, mix: { rust: 8, spider: 4, wasp: 3, ghost: 2, shell: 2, frog: 1 } },
+    channelAmbient: { from: 0, target: 220, rate: 12, mix: { rust: 8, spider: 4, wasp: 3, ghost: 2, shell: 2, frog: 1 } },
     bossAmbient: { from: 0, target: 60, rate: 5, mix: { rust: 4, spider: 2, ghost: 1 } },
     waves: [
       { t: 25, enemy: 'rust', count: 70, side: 'around', formation: 'ring' },

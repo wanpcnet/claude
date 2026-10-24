@@ -205,5 +205,5 @@ export function rollCards(b: Build, random: () => number, count = 3, luck = 0, l
 }
 
 export function xpForLevel(level: number): number {
-  return Math.floor(6 + level * 3.4 + level * level * 0.2);
+  return Math.floor(8 + level * 5 + level * level * 0.45);
 }

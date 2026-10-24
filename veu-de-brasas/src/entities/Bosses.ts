@@ -193,7 +193,7 @@ export class HeartBoss implements BossController {
       w.shake(6);
       w.hazards.ring(e.x, e.y, 0.2, 280, 380, 26, 12, [0x60e0ff, 0xb070ff, 0xff7040][this.phase]);
       w.announce(['', 'O Coração racha: raízes de coral!', 'Último pulso do Véu!'][this.phase]);
-      w.lighting.ambient = [[0.5, 0.55, 0.72], [0.55, 0.45, 0.7], [0.7, 0.45, 0.45]][this.phase] as [number, number, number];
+      w.lighting.ambient = [[0.72, 0.72, 0.86], [0.76, 0.64, 0.86], [0.86, 0.62, 0.62]][this.phase] as [number, number, number];
       for (let i = 0; i < 6; i++) w.director.spawnNear(this.phase === 2 ? 'shell' : 'spider', e.x, e.y + 120, 160);
       return;
     }

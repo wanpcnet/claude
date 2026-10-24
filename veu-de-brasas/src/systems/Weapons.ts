@@ -431,7 +431,7 @@ export class Weapons {
         if (!near) return;
         e.hitCd[Src.Crown] = now;
         const a = Math.atan2(e.y - h.y, e.x - h.x);
-        w.damageEnemy(e, { amount: L.damage, type: 'fire', source: Src.Crown, knock: 40, kx: Math.cos(a), ky: Math.sin(a), burn: L.burn * burnMul, burnDur: 2 });
+        w.damageEnemy(e, { amount: L.damage, type: 'fire', source: Src.Crown, knock: 28, kx: Math.cos(a), ky: Math.sin(a), burn: L.burn * burnMul, burnDur: 2 });
         w.fx.hit(e.x, e.y - 6, 0xffa040, 0.6);
       });
     }

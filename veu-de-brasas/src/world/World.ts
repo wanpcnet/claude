@@ -113,6 +113,10 @@ export class World {
   private screenW = 1280;
   private screenH = 720;
   private xpComboT = 0;
+  /** neblina em camada de parallax (move-se 12% mais rápido que o mundo: profundidade sutil) */
+  private fog = new Container();
+  private fogSprites: { s: Sprite; vx: number }[] = [];
+  private moteT = 0;
 
   constructor(readonly game: Game, actIndex: number, state: RunState, ground: { tex: Texture; x: number; y: number }[]) {
     this.assets = game.assets;
@@ -180,7 +184,17 @@ export class World {
     this.indicator.addChild(ig, ia);
     this.indicator.visible = false;
     this.screenUi.addChild(this.vignette, this.indicator);
-    this.root.addChild(this.base, this.lighting.overlay, this.fxRoot, this.screenUi);
+    for (let i = 0; i < 14; i++) {
+      const s = new Sprite(this.assets.tex('fx', `smoke_${i % 4}`));
+      s.anchor.set(0.5);
+      s.tint = 0x9aa0b8;
+      s.alpha = 0.05 + (i % 3) * 0.015;
+      s.scale.set(5 + (i % 4) * 1.5, 3 + (i % 3));
+      s.position.set(((i * 397) % this.arena.width), ((i * 263) % this.arena.height));
+      this.fog.addChild(s);
+      this.fogSprites.push({ s, vx: 6 + (i % 5) * 3 });
+    }
+    this.root.addChild(this.base, this.lighting.overlay, this.fxRoot, this.fog, this.screenUi);
 
     const cm = new ColorMatrixFilter();
     cm.desaturate();
@@ -548,6 +562,25 @@ export class World {
     for (const c of [this.base, this.fxRoot]) {
       c.position.set(px, py);
       c.scale.set(this.zoom);
+    }
+    // parallax da neblina
+    const pf = 1.12;
+    this.fog.scale.set(this.zoom * pf);
+    this.fog.position.set(this.screenW / 2 - cx * this.zoom * pf, this.screenH / 2 - cy * this.zoom * pf);
+    for (const f of this.fogSprites) {
+      f.s.x += f.vx * dt;
+      if (f.s.x > cx + hw * 1.6) f.s.x = cx - hw * 1.6;
+      if (f.s.x < cx - hw * 1.8) f.s.x = cx + hw * 1.5;
+      if (f.s.y > cy + hh * 1.8) f.s.y = cy - hh * 1.6;
+      if (f.s.y < cy - hh * 1.8) f.s.y = cy + hh * 1.6;
+    }
+    // poeira/esporos suspensos, em volume muito moderado
+    this.moteT -= dt;
+    if (this.moteT <= 0) {
+      this.moteT = 0.12 / Math.max(0.3, this.fx.density);
+      const theme = this.arena.map.theme;
+      const tint = theme === 'glass' ? 0x9ff4ff : theme === 'sunken' ? 0xc8a0ff : 0xffc080;
+      this.particles.emit({ tex: this.fx.dot, x: cx + (Math.random() - 0.5) * hw * 2, y: cy + (Math.random() - 0.5) * hh * 2, vx: (Math.random() - 0.5) * 10, vy: -6 - Math.random() * 8, life: 3 + Math.random() * 2, s0: 0.7, s1: 1.0, a0: 0.5, a1: 0, tint });
     }
     // culling simples de props fora da tela
     const vx0 = cx - hw - 140;

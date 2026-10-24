@@ -61,10 +61,10 @@ export class EnemySystem {
     e.z = 0;
     e.kx = e.ky = e.mvx = e.mvy = 0;
     e.maxHp = e.hp = Math.round(def.hp * hpMul);
-    e.armorHp = def.id === 'guardian' ? Math.round(420 * hpMul) : 0;
+    e.armorHp = def.id === 'guardian' ? Math.round(650 * hpMul) : 0;
     e.radius = def.radius;
     e.mass = def.mass;
-    e.speed = def.speed * rng.range(0.92, 1.08);
+    e.speed = def.speed * rng.range(0.92, 1.08) * (1 + this.w.actIndex * 0.07);
     e.state = 'spawn';
     e.st = 0;
     e.flashT = e.burnT = e.slowT = e.flashCd = 0;
@@ -575,11 +575,11 @@ export class EnemySystem {
             e.a1 = Math.atan2(dy, dx);
             e.facing = dx > 0 ? 1 : -1;
             this.setAnim(e, 'guardian_windup', false, 4);
-            w.hazards.cone(e.x, e.y - 8, e.a1, 200, 0.55, 0.95, def.damage + 4, 0xff7050);
+            w.hazards.cone(e.x, e.y - 8, e.a1, 200, 0.55, 0.95, def.damage, 0xff7050);
             w.sfx('sfx_warn', { volume: 0.4 });
           }
         } else if (e.state === 'windup' && e.st > 0.95) {
-          w.projectiles.fan('coral', e.x, e.y - 10, e.a1, broken ? 11 : 9, 1.0, 210, 12);
+          w.projectiles.fan('coral', e.x, e.y - 10, e.a1, broken ? 11 : 9, 1.0, 210, 9);
           w.fx.shatter(e.x + Math.cos(e.a1) * 30, e.y + Math.sin(e.a1) * 30, 8, true);
           w.shake(3);
           w.sfx('sfx_glass', { volume: 0.6 });

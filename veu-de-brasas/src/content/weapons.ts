@@ -33,7 +33,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     id: 'crown', name: 'Coroa de Brasas', icon: 'w_crown', element: 'fogo',
     desc: 'Aro de brasas orbital; Q expande em um pulso incendiário.',
     levels: [
-      { damage: 7, cooldown: 0.4, arcs: 3, radius: 40, burn: 3, pulseDamage: 32, pulseRadius: 150 },
+      { damage: 6, cooldown: 0.42, arcs: 3, radius: 40, burn: 3, pulseDamage: 32, pulseRadius: 150 },
       { damage: 9, cooldown: 0.38, arcs: 4, radius: 44, burn: 4, pulseDamage: 40, pulseRadius: 165 },
       { damage: 11, cooldown: 0.36, arcs: 4, radius: 48, burn: 5, pulseDamage: 50, pulseRadius: 180 },
       { damage: 13, cooldown: 0.33, arcs: 5, radius: 52, burn: 6, pulseDamage: 62, pulseRadius: 195 },

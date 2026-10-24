@@ -52,13 +52,24 @@ await page.evaluate(() => {
       fx += (dx / d) * k; fy += (dy / d) * k;
     } else if (op && (w.director.stage.type === 'elite')) {
       const dx = op.x - h.x, dy = op.y - h.y, d = Math.hypot(dx, dy) || 1;
-      const want = d > 180 ? 1 : d < 120 ? -1 : 0;
+      const want = d > 250 ? 1 : d < 190 ? -1 : 0;
       fx += (dx / d) * want * 0.8; fy += (dy / d) * want * 0.8;
     } else {
       // ronda pelo centro do mapa
       const cx = w.arena.width / 2 + Math.cos(w.time * 0.2) * 300, cy = w.arena.height / 2 + Math.sin(w.time * 0.2) * 200;
       const dx = cx - h.x, dy = cy - h.y, d = Math.hypot(dx, dy) || 1;
       fx += (dx / d) * 0.5; fy += (dy / d) * 0.5;
+    }
+    // esquiva de avisos no solo: sai perpendicularmente e usa a esquiva
+    for (const hz of w.hazards.pool.items) {
+      if (!hz.active || hz.resolved || hz.dmg <= 0) continue;
+      if (w.hazards.inside(hz, h.x, h.y, 10)) {
+        const ax = h.x - hz.x, ay = h.y - hz.y, al = Math.hypot(ax, ay) || 1;
+        const px = hz.kind === 'line' || hz.kind === 'cone' ? -Math.sin(hz.ang) : ax / al;
+        const py = hz.kind === 'line' || hz.kind === 'cone' ? Math.cos(hz.ang) : ay / al;
+        fx += px * 30; fy += py * 30;
+        if (hz.t > hz.delay * 0.55 && h.dashCd <= 0) G.input.press('dash');
+      }
     }
     const l = Math.hypot(fx, fy) || 1;
     G.input.touchActive = true;
