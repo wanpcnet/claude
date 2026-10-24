@@ -211,7 +211,9 @@ export class Game {
     this.hud.reset();
     this.hud.show(true);
     this.hud.objective(w.director.objective);
-    this.menus.showTouch(this.input.usingTouch || matchMedia('(pointer: coarse)').matches);
+    const touchUi = this.input.usingTouch || matchMedia('(pointer: coarse)').matches;
+    this.menus.showTouch(touchUi);
+    document.documentElement.classList.toggle('touch-mode', touchUi);
     this.menus.endTransition();
     this.audio.music('music_combat', 1.5);
     this.input.clearPressed();

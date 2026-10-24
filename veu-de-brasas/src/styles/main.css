@@ -266,7 +266,7 @@ kbd {
 .tc-sub { color: var(--ink-dim); font-style: italic; font-size: 19px; margin-top: 8px; animation: fadein 1.6s; text-align: center; }
 
 /* ---------------------------------------------------------------- toque */
-.touch { position: fixed; inset: 0; pointer-events: auto; }
+#ui > .touch { position: fixed; inset: 0; pointer-events: auto; touch-action: none; }
 .stick { position: absolute; left: 40px; bottom: 60px; width: 120px; height: 120px; border-radius: 50%; border: 3px solid #f2cf5a55; background: #0b081060; opacity: 0.5; }
 .stick.on { opacity: 1; }
 .knob { position: absolute; left: 35px; top: 35px; width: 50px; height: 50px; border-radius: 50%; background: radial-gradient(#ffc24a, #8a4a10); border: 2px solid #000; }
@@ -321,3 +321,15 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   .card, .card .art img, .logo .emblem, .load-emblem { animation: none !important; }
 }
+
+/* ---------------------------------------------------------------- modo toque (celular) */
+.touch-mode .skills { display: none; }
+.touch-mode .hud-bottom { bottom: auto; top: calc(96px * var(--ui-scale)); left: 8px; }
+.touch-mode .portrait .hud-bottom, .portrait.touch-mode .hud-bottom { top: calc(168px * var(--ui-scale)); }
+.touch-mode .weapon { width: 34px; height: 34px; }
+.touch-mode .hint { bottom: auto; top: calc(140px * var(--ui-scale)); font-size: 14px; }
+.portrait.touch-mode .hint { top: calc(215px * var(--ui-scale)); }
+.touch-mode .tbtn.dash { bottom: 54px; right: 24px; }
+.touch-mode .tbtn.pulse { bottom: 150px; right: 40px; }
+.touch-mode .tbtn.pause { top: auto; bottom: 240px; right: 20px; }
+.touch-mode .tbtn.pulse.ready { border-color: var(--amber); box-shadow: 0 0 12px #ffb34799; }

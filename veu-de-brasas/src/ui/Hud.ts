@@ -104,6 +104,13 @@ export class Hud {
   }
 
   hint(text: string): void {
+    if (document.documentElement.classList.contains('touch-mode')) {
+      // dicas adaptadas aos controles de toque
+      text = text
+        .replace('WASD / setas para mover', 'Arraste o dedo na metade esquerda para mover')
+        .replace('ESPAÇO:', 'Botão »:')
+        .replace('Q: Pulso da Coroa', 'Botão ◎: Pulso da Coroa');
+    }
     this.hintEl.textContent = text;
     this.hintEl.classList.add('show');
     this.hintT = 6;
