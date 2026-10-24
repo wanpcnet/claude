@@ -286,7 +286,7 @@ export class World {
   resize(w: number, h: number): void {
     this.screenW = w;
     this.screenH = h;
-    const z = Math.min(h / 520, w / 400);
+    const z = h > w ? Math.min(w / 270, h / 520) : Math.min(h / 500, w / 400);
     this.zoom = Math.max(1, Math.round(z * 8) / 8);
     this.lighting.resize(w, h);
     this.vignette.width = w;
