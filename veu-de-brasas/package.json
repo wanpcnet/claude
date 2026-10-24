@@ -1,0 +1,28 @@
+{
+  "name": "veu-de-brasas",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Véu de Brasas — ação 2D top-down de sobrevivência arcana (PixiJS 8 + WebGL)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "art": "python3 scripts/art/build_all.py",
+    "audio": "python3 scripts/audio/build_audio.py",
+    "e2e": "node scripts/e2e/smoke.mjs"
+  },
+  "dependencies": {
+    "@fontsource/alegreya-sans": "^5.2.0",
+    "@fontsource/cinzel": "^5.2.0",
+    "pixi-filters": "^6.1.0",
+    "pixi.js": "^8.10.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^3.2.4"
+  }
+}

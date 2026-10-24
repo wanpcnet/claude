@@ -1,0 +1,5 @@
+node_modules
+dist
+*.zip
+scripts/**/__pycache__
+.e2e-out
