@@ -87,7 +87,7 @@ export class Director {
     const ctrl = kind === 'toad' ? new ToadBoss(w) : new HeartBoss(w);
     e.boss = ctrl;
     e.def = {
-      id: kind, name: ctrl.name, ai: 'swarm', hp: kind === 'toad' ? 4200 : 7200, speed: 0, damage: 20, radius: kind === 'toad' ? 52 : 58, mass: 999, armor: 0,
+      id: kind, name: ctrl.name, ai: 'swarm', hp: kind === 'toad' ? 6000 : 14000, speed: 0, damage: 14, radius: kind === 'toad' ? 52 : 58, mass: 999, armor: 0,
       xp: 0, anim: kind, walkAnim: kind === 'toad' ? 'toad_idle' : 'heart_p0', fps: 5, deathTint: 0xffc070, anchorY: kind === 'toad' ? 0.82 : 0.55,
     };
     const hpMul = w.modTide ? 1.1 : 1;
@@ -109,6 +109,7 @@ export class Director {
     e.facing = 1;
     e.noXp = false;
     e.isSummon = false;
+    e.bossDrops = 0;
     w.enemies.setAnim(e, e.def.walkAnim, true, 5);
     e.sprite.anchor.set(0.5, e.def.anchorY ?? 0.8);
     e.sprite.visible = true;

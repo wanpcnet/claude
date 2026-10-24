@@ -124,14 +124,21 @@ export class Weapons {
   }
 
   /** Mira: manual (mouse) se ativada; senão o inimigo válido mais próximo. */
-  private aim(range: number): { ang: number; target: Enemy | null } {
+  private aim(range: number, preferBig: false | 'soft' | 'always' = false): { ang: number; target: Enemy | null } {
     const w = this.w;
     const h = w.hero;
     if (w.game.save.data.settings.manualAim && w.game.input.mouseInside && !w.game.input.usingTouch) {
       const p = w.screenToWorld(w.game.input.mouseX, w.game.input.mouseY);
       return { ang: Math.atan2(p.y - (h.y - 12), p.x - h.x), target: null };
     }
-    const t = w.enemies.nearest(h.x, h.y, range);
+    let t = w.enemies.nearest(h.x, h.y, range);
+    // prioriza elite/chefe quando não há ameaça colada na heroína
+    const big = w.director.target;
+    if (preferBig && big && big.alive && big.state !== 'spawn') {
+      const db = Math.hypot(big.x - h.x, big.y - h.y);
+      const dn = t ? Math.hypot(t.x - h.x, t.y - h.y) : Infinity;
+      if (db <= range + big.radius && (preferBig === 'always' || dn > 90)) t = big;
+    }
     if (!t) return { ang: Math.atan2(h.aimY, h.aimX), target: null };
     return { ang: Math.atan2(t.y - 6 - (h.y - 12), t.x - h.x), target: t };
   }
@@ -144,7 +151,7 @@ export class Weapons {
     const oy = h.y - 14;
     switch (id) {
       case 'arrow': {
-        const { ang, target } = this.aim(L.range);
+        const { ang, target } = this.aim(L.range, 'soft');
         if (!target && !w.game.save.data.settings.manualAim) return false;
         const n = L.count + st.arrowExtra;
         for (let i = 0; i < n; i++) {
@@ -158,7 +165,7 @@ export class Weapons {
         return true;
       }
       case 'lance': {
-        const { ang, target } = this.aim(440);
+        const { ang, target } = this.aim(440, 'always');
         if (!target) return false;
         for (let i = 0; i < L.count; i++) {
           const a = ang + (i - (L.count - 1) / 2) * 0.18;
@@ -180,7 +187,12 @@ export class Weapons {
         // escolhe, entre alguns candidatos, o inimigo com mais vizinhos (aglomeração)
         let best: Enemy | null = null;
         let bestN = -1;
-        for (let k = 0; k < 5; k++) {
+        const big = w.director.target;
+        if (big && big.alive && big.state !== 'spawn' && Math.hypot(big.x - h.x, big.y - h.y) < 320) {
+          best = big;
+          bestN = 99;
+        }
+        for (let k = 0; k < 5 && bestN < 99; k++) {
           const c = w.enemies.nearest(h.x + rng.range(-160, 160), h.y + rng.range(-120, 120), 200);
           if (!c) continue;
           let n = 0;

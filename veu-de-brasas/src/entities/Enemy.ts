@@ -62,6 +62,7 @@ export class Enemy {
   shadow: Sprite;
   scale = 1;
   isSummon = false;
+  bossDrops = 0;
   noXp = false;
 
   constructor(id: number) {

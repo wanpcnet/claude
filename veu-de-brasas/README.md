@@ -130,3 +130,36 @@ de desempenho (F3 alterna o painel em qualquer modo). Exemplo de estresse no con
 ## Testes e validação realizados
 
 Veja a seção “Resultados” no final deste arquivo.
+
+## Resultados (executados neste ambiente)
+
+Ambiente: contêiner Linux sem GPU; Chromium headless via Playwright com WebGL por software
+(SwiftShader). **Não houve medição em hardware real**, então as metas de 60 FPS continuam sendo
+metas.
+
+| Verificação | Resultado |
+|---|---|
+| `npm install` | ok, sem configuração secreta |
+| `npm run build` (tsc estrito + Vite) | ok, sem erros |
+| `npm test` (Vitest, 18 testes) | 18/18 passando — grade espacial, pools, cartas (nunca maximizadas/duplicadas, combos condicionais, efeito real de cada carta), armas, migração de save, layouts dos mapas (alcance por BFS a partir do início, caracteres válidos), roteiro dos atos, existência de todos os assets referenciados |
+| `scripts/e2e/smoke.mjs` | menu → nova jornada → movimento, esquiva, pulso → 350 inimigos → cartas → pausa/retomar → áudio (33 buffers decodificados) → gamepad simulado → qualidades Baixa/Média/Alta; **0 erros de console, 0 requisições falhas** (1280×720 e 432×860 retrato) |
+| `scripts/e2e/campaign.mjs` | três atos com objetivos acelerados: Âncoras, Guardião, Sacerdotisa, Batráquio, transições de ato; 0 erros |
+| `scripts/e2e/bosses.mjs` | Batráquio (salto, onda de choque, leque de lava, fase enfurecida) e Coração do Véu (três fases) até a tela de vitória; 0 erros |
+| `scripts/e2e/bot.mjs` (sem trapaças: só entrada simulada) | Ato I vencido do zero; Atos II–III vencidos a partir de uma build equivalente (Batráquio ≈30 s, Coração ≈60 s de luta). Versões anteriores do balanceamento foram ajustadas com base nessas execuções (o bot perdia para o Guardião e o Batráquio antes de aprender a esquivar os avisos) |
+| Custo de CPU da simulação | painel de debug: ~1–2,6 ms por quadro com ~350 inimigos ativos (no Chromium por software). O FPS medido ali (11–30) reflete a rasterização por software, não o jogo em GPU |
+| Canvas 2D | nenhum uso de `getContext`/`CanvasRenderingContext2D`/`Graphics`/`Text` em `src/` (números de dano usam fonte bitmap própria) |
+
+## Limitações conhecidas
+
+- Desempenho em GPU real e em celulares não foi medido (só há Chromium por software aqui). A
+  qualidade “Auto” é uma heurística simples (toque/núcleos de CPU).
+- Gamepad testado apenas com a Gamepad API simulada no navegador, não com controle físico.
+- A trilha é sintetizada (pads, cordas Karplus-Strong, sinos FM, bateria sintética): é original
+  e funcional, mas não tem a riqueza de uma gravação orquestral.
+- A arte é pixel art desenhada por código (formas, rampas de paleta e pontilhado) — não houve
+  ferramenta de geração de imagens disponível. O resultado tem identidade consistente, mas
+  traço mais geométrico do que pixel art feita à mão quadro a quadro.
+- O build do Vite inclui chunks internos do PixiJS (por exemplo, o renderizador Canvas e o
+  WebGPU) que o Pixi carrega sob demanda; o jogo pede `preference: 'webgl'` e não os usa.
+- O balanceamento foi validado com um bot; jogadores humanos devem achar os chefes mais
+  exigentes ou mais fáceis conforme a habilidade de esquiva — ajuste fino depende de playtest.

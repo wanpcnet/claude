@@ -57,7 +57,7 @@ export class ToadBoss implements BossController {
             w.hazards.cone(e.x, e.y - 20, ang, 260, rage ? 0.75 : 0.6, 0.7, 0, 0xff8040);
             e.a1 = ang;
           } else {
-            this.jumpsLeft = rage ? 3 : 1;
+            this.jumpsLeft = rage ? 2 : 1;
             this.startJump(e);
           }
         }
@@ -92,8 +92,8 @@ export class ToadBoss implements BossController {
           w.hitstop(0.06);
           w.fx.dust(e.x, e.y + 20, 14);
           w.fx.smokeBurst(e.x, e.y + 20, 8, 2);
-          w.hazards.ring(e.x, e.y, 0, 300, 420, 24, rage ? 18 : 15, 0xffa060);
-          if (rage) w.hazards.ring(e.x, e.y, 0.45, 260, 380, 24, 15, 0xff6030);
+          w.hazards.ring(e.x, e.y, 0, 280, 400, 24, rage ? 14 : 12, 0xffa060);
+          if (rage) w.hazards.ring(e.x, e.y, 0.55, 240, 360, 24, 12, 0xff6030);
           w.enemies.forRadius(e.x, e.y, 90, (o) => {
             if (o !== e) w.damageEnemy(o, { amount: 999, type: 'physical', source: Src.Pulse }, true);
           });
@@ -118,7 +118,7 @@ export class ToadBoss implements BossController {
         const gap = 0.45;
         if (e.st > 0.7 + e.a4 * gap && e.a4 < waves) {
           const ang = e.a4 === 0 ? e.a1 : Math.atan2(h.y - e.y, h.x - e.x);
-          w.projectiles.fan('lava', e.x, e.y - 22, ang + (e.a4 % 2 ? 0.08 : 0), rage ? 11 : 7, rage ? 1.5 : 1.2, 170, 12);
+          w.projectiles.fan('lava', e.x, e.y - 22, ang + (e.a4 % 2 ? 0.08 : 0), rage ? 9 : 7, rage ? 1.5 : 1.2, 160, 10);
           w.sfx('sfx_fire', { volume: 0.8 });
           w.fx.fire(e.x, e.y - 20, 8, 20);
           e.a4++;
@@ -153,7 +153,7 @@ export class ToadBoss implements BossController {
     e.ax = tx;
     e.ay = ty;
     const delay = (this.phase === 2 ? 0.5 + 0.75 : 0.7 + 0.95) - 0.05;
-    w.hazards.circle(tx, ty, 92, delay, 26, 0xff5030);
+    w.hazards.circle(tx, ty, 84, delay, 18, 0xff5030);
     w.sfx('sfx_warn', { volume: 0.5 });
   }
 

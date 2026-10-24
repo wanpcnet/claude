@@ -314,6 +314,15 @@ export class World {
       }
     }
     e.hp -= amt;
+    // chefes soltam frutos de cura a cada 25% de vida perdida (justiça em lutas longas)
+    if (e.boss && e.hp > 0) {
+      const marks = Math.floor((1 - e.hp / e.maxHp) * 4);
+      while (e.bossDrops < marks) {
+        e.bossDrops++;
+        this.pickups.drop('heal', this.hero.x + rng.range(-60, 60), this.hero.y + rng.range(-40, 40));
+        this.pickups.drop('energy', this.hero.x + rng.range(-60, 60), this.hero.y + rng.range(-40, 40));
+      }
+    }
     const key = SRC_NAME[hit.source] ?? 'Outros';
     this.damageBySource[key] = (this.damageBySource[key] ?? 0) + amt;
     if (hit.knock && e.mass < 900) {
@@ -337,7 +346,7 @@ export class World {
     }
     if (this.stats.lifesteal > 0 && this.hero.alive) this.lifestealPool += amt * this.stats.lifesteal;
     const important = !!e.boss || !!e.def.elite;
-    if (!silent && amt >= 1 && (amt >= 24 || important || hit.heavy)) this.floatText.spawn(e.x, e.y - e.radius * 2 - 6, String(Math.round(amt)), DMG_COLOR[hit.type], amt >= 40);
+    if (!silent && amt >= 1 && (amt >= 40 || important || hit.heavy)) this.floatText.spawn(e.x, e.y - e.radius * 2 - 6, String(Math.round(amt)), DMG_COLOR[hit.type], amt >= 40);
     if (e.hp <= 0) {
       this.killEnemy(e);
       return true;

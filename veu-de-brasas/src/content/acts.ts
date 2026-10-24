@@ -87,7 +87,7 @@ export const ACTS: ActScript[] = [
       { from: 140, target: 140, rate: 11, mix: { rust: 5, spider: 3, wasp: 3, ghost: 2, frog: 1, shell: 1 } },
       { from: 240, target: 180, rate: 13, mix: { rust: 6, spider: 3, wasp: 3, ghost: 2, frog: 2, shell: 1 } },
     ],
-    channelAmbient: { from: 0, target: 160, rate: 9, mix: { rust: 6, spider: 3, wasp: 3, ghost: 2, shell: 1 } },
+    channelAmbient: { from: 0, target: 130, rate: 7, mix: { rust: 6, spider: 3, wasp: 3, ghost: 2, shell: 1 } },
     bossAmbient: { from: 0, target: 50, rate: 4, mix: { rust: 3, frog: 1, wasp: 1 } },
     waves: [
       { t: 20, enemy: 'wasp', count: 10, side: 'north', formation: 'arc' },
@@ -117,7 +117,7 @@ export const ACTS: ActScript[] = [
       { from: 70, target: 160, rate: 13, mix: { rust: 6, spider: 3, ghost: 2, frog: 2, shell: 1, wasp: 2 } },
       { from: 170, target: 230, rate: 16, mix: { rust: 7, spider: 4, ghost: 2, frog: 2, shell: 2, wasp: 2, slime: 1 } },
     ],
-    channelAmbient: { from: 0, target: 220, rate: 12, mix: { rust: 8, spider: 4, wasp: 3, ghost: 2, shell: 2, frog: 1 } },
+    channelAmbient: { from: 0, target: 180, rate: 9, mix: { rust: 8, spider: 4, wasp: 3, ghost: 2, shell: 2, frog: 1 } },
     bossAmbient: { from: 0, target: 60, rate: 5, mix: { rust: 4, spider: 2, ghost: 1 } },
     waves: [
       { t: 25, enemy: 'rust', count: 70, side: 'around', formation: 'ring' },
