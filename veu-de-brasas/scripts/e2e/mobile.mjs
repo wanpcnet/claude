@@ -60,18 +60,38 @@ try {
   await shot('04-pulse');
   console.log('energy after pulse', Math.round(await page.evaluate(() => window.__veu.world.hero.energy)));
   // cartas por toque
-  await page.evaluate(() => window.__veu.world.addXp(window.__veu.world.xpNext));
+  await page.evaluate(() => { const w = window.__veu.world; w.addXp(w.xpNext); w.xpNext = 1e9; w.xp = 0; });
   await sleep(1500);
   await shot('05-cards');
   const card = await page.locator('.card').first().boundingBox();
   if (card) await page.touchscreen.tap(card.x + card.width / 2, card.y + card.height / 2);
   await sleep(900);
   console.log('state after card tap', await page.evaluate(() => window.__veu.state));
+  for (let k = 0; k < 6 && (await page.evaluate(() => window.__veu.state)) === 'cards'; k++) {
+    const c = await page.locator('.card').first().boundingBox();
+    if (c) await page.touchscreen.tap(c.x + c.width / 2, c.y + c.height / 2);
+    await sleep(900);
+  }
+  await page.evaluate(() => { const w = window.__veu.world; w.pendingLevels = 0; w.pendingBonus = 0; });
+  await sleep(600);
+  console.log('before pause', await page.evaluate(() => window.__veu.state + ' | ' + document.documentElement.className + ' | pend=' + window.__veu.world.pendingLevels + ',' + window.__veu.world.pendingBonus));
+  await shot('05b-before-pause');
   const pz = await page.locator('.tbtn.pause').boundingBox();
+  console.log('pause probe', JSON.stringify(pz), await page.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); return (e ? e.className + ' / ' + (e.parentElement?.className ?? '') : 'none') + ' | html=' + document.documentElement.className; }, [pz.x + pz.width / 2, pz.y + pz.height / 2]));
+  await page.evaluate(() => {
+    const G = window.__veu; window.__log = [];
+    for (const k of ['pause', 'resume', 'openCards']) { const f = G[k].bind(G); G[k] = (...a) => { window.__log.push(k + '@' + G.state); return f(...a); }; }
+    const f2 = G.input.press.bind(G.input); G.input.press = (a) => { window.__log.push('press:' + a); return f2(a); };
+  });
   await page.touchscreen.tap(pz.x + pz.width / 2, pz.y + pz.height / 2);
   await sleep(500);
+  console.log('log', JSON.stringify(await page.evaluate(() => window.__log)));
   await shot('06-pause');
   console.log('state after pause tap', await page.evaluate(() => window.__veu.state));
+  await tapText('Continuar');
+  await sleep(500);
+  console.log('state after Continuar tap', await page.evaluate(() => window.__veu.state));
+  console.log('stick opacity', await page.evaluate(() => getComputedStyle(document.querySelector('.stick')).opacity));
 } catch (e) {
   errors.push('test: ' + e.message);
   await shot('99-fail');

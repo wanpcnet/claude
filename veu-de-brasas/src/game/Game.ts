@@ -264,6 +264,7 @@ export class Game {
   openCards(bonus: boolean): void {
     const w = this.world;
     if (!w || this.state !== 'playing') return;
+    if (w.pendingLevels <= 0 && w.pendingBonus <= 0) return;
     this.cardBonus = bonus;
     const luck = bonus ? 1.6 : Math.min(0.6, w.level * 0.02);
     this.cards = rollCards(w.build, () => rng.next(), 3, luck, w.level);
@@ -335,8 +336,20 @@ export class Game {
   }
 
   // ------------------------------------------------------------ laço principal
+  private lastState: State | '' = '';
+
   private tick(dt: number): void {
     const t0 = performance.now();
+    if (this.state !== this.lastState) {
+      this.lastState = this.state;
+      const modal = this.state !== 'playing';
+      document.documentElement.classList.toggle('ui-modal', modal);
+      if (modal) {
+        // solta o joystick ao abrir cartas/pausa para a heroína não continuar andando
+        this.input.touchActive = false;
+        this.input.touchX = this.input.touchY = 0;
+      }
+    }
     dt = Math.min(dt, 0.1);
     this.input.pollGamepad();
     if (this.input.consume('debug')) this.debugOn = !this.debugOn;
