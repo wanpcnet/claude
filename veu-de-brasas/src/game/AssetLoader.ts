@@ -26,7 +26,7 @@ export class AssetLoader {
   failures: string[] = [];
 
   async load(audio: AudioManager, onProgress: (p: number, label: string) => void): Promise<void> {
-    TextureStyle.defaultOptions.scaleMode = 'nearest';
+    TextureStyle.defaultOptions.scaleMode = 'linear';
     const names = Object.keys(ATLASES) as AtlasName[];
     let step = 0;
     const total = names.length + 5;

@@ -82,7 +82,7 @@ export class ToadBoss implements BossController {
         e.y = e.a2 + (e.ay - e.a2) * t;
         e.z = Math.sin(t * Math.PI) * 160;
         const k = 1 - Math.sin(t * Math.PI) * 0.35;
-        e.shadow.scale.set(((e.radius * 2.6) / 32) * k, ((e.radius * 2.6) / 14) * k);
+        e.shadow.scale.set(((e.radius * 2.6) / 32) * k, ((e.radius * 1.6) / 14) * k);
         if (t >= 1) {
           e.z = 0;
           e.state = 'recover';
@@ -92,8 +92,8 @@ export class ToadBoss implements BossController {
           w.sfx('sfx_land', { volume: 1 });
           w.shake(8);
           w.hitstop(0.06);
-          w.fx.dust(e.x + 14, e.y + 14, 14);
-          w.fx.smokeBurst(e.x + 14, e.y + 14, 8, 2);
+          w.fx.dust(e.x, e.y + 16, 14);
+          w.fx.smokeBurst(e.x, e.y + 16, 8, 2);
           w.hazards.ring(e.x, e.y, 0, 280, 400, 24, rage ? 14 : 12, 0xffa060);
           if (rage) w.hazards.ring(e.x, e.y, 0.55, 240, 360, 24, 12, 0xff6030);
           w.enemies.forRadius(e.x, e.y, 90, (o) => {
@@ -109,7 +109,7 @@ export class ToadBoss implements BossController {
           else {
             e.state = 'move';
             e.st = 0;
-            e.shadow.scale.set((e.radius * 2.6) / 32, (e.radius * 2.6) / 14);
+            e.shadow.scale.set((e.radius * 2.6) / 32, (e.radius * 1.6) / 14);
           }
         }
         break;
@@ -120,7 +120,7 @@ export class ToadBoss implements BossController {
         const gap = 0.45;
         if (e.st > 0.7 + e.a4 * gap && e.a4 < waves) {
           const ang = e.a4 === 0 ? e.a1 : Math.atan2(h.y - e.y, h.x - e.x);
-          w.projectiles.fan('lava', e.x + 14, e.y + 14, ang + (e.a4 % 2 ? 0.08 : 0), rage ? 9 : 7, rage ? 1.5 : 1.2, 160, 10, 28);
+          w.projectiles.fan('lava', e.x, e.y + 16, ang + (e.a4 % 2 ? 0.08 : 0), rage ? 9 : 7, rage ? 1.5 : 1.2, 160, 10, 28);
           w.sfx('sfx_fire', { volume: 0.8 });
           w.fx.at(20).fire(e.x, e.y, 8, 20);
           e.a4++;

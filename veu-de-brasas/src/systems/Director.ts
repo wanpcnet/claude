@@ -119,7 +119,7 @@ export class Director {
     e.sprite.visible = true;
     e.sprite.alpha = 1;
     e.shadow.visible = true;
-    e.shadow.scale.set((e.radius * 2.6) / 32, (e.radius * 2.6) / 14);
+    e.shadow.scale.set((e.radius * 2.6) / 32, (e.radius * 1.6) / 14);
     this.bossEnemy = e;
     this.target = e;
     w.setBoss(e);

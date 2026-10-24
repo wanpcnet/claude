@@ -91,7 +91,7 @@ export class EnemySystem {
     s.texture = e.frames[0];
     s.position.set(iso.x(x, y), iso.y(x, y));
     e.shadow.visible = true;
-    e.shadow.scale.set((e.radius * 2.4) / 32, (e.radius * 2.4) / 14);
+    e.shadow.scale.set((e.radius * 2.4) / 32, (e.radius * 1.5) / 14);
     if (def.elite) this.attachBar(e);
     return e;
   }
@@ -100,9 +100,9 @@ export class EnemySystem {
     if (!e.bar) {
       const bar = new Container();
       const frame = new Sprite(this.w.uiTex.barFrame);
-      frame.scale.set(0.9, 0.75);
+      frame.scale.set(60 / 128, 0.5);
       const fill = new Sprite(this.w.uiTex.barHp);
-      fill.position.set(2, 1.5);
+      fill.position.set(3, 3);
       fill.height = 6;
       bar.addChild(frame, fill);
       e.bar = bar;
@@ -326,7 +326,7 @@ export class EnemySystem {
   private setMove(e: Enemy, x: number, y: number, speed: number): void {
     e.mvx = x * speed;
     e.mvy = y * speed;
-    const sx = x - y; // componente horizontal na tela
+    const sx = x;
     if (Math.abs(sx) > 0.15) e.facing = sx > 0 ? 1 : -1;
   }
 
@@ -459,7 +459,7 @@ export class EnemySystem {
             e.st = 0;
             e.mvx = e.mvy = 0;
             e.a1 = Math.atan2(dy, dx);
-            e.facing = dx - dy > 0 ? 1 : -1;
+            e.facing = dx > 0 ? 1 : -1;
             this.setAnim(e, 'shell_windup', true, 16);
             w.hazards.line(e.x, e.y, e.a1, 300, 34, 0.9, 0, 0xff5030);
           }
@@ -515,7 +515,7 @@ export class EnemySystem {
             e.a2 = e.y;
             e.ax = tx;
             e.ay = ty;
-            e.facing = tx - e.x - (ty - e.y) > 0 ? 1 : -1;
+            e.facing = tx - e.x > 0 ? 1 : -1;
             w.hazards.circle(tx, ty, 30, 0.9, def.damage, 0x60ffd0);
           }
         } else if (e.state === 'windup') {
@@ -562,7 +562,7 @@ export class EnemySystem {
           my += (dx / d) * strafe * 0.5;
           const l = Math.hypot(mx, my) || 1;
           this.setMove(e, mx / l, my / l, e.speed);
-          e.facing = dx - dy > 0 ? 1 : -1;
+          e.facing = dx > 0 ? 1 : -1;
           if (e.attackCd <= 0 && d < 320) {
             e.state = 'windup';
             e.st = 0;
@@ -591,7 +591,7 @@ export class EnemySystem {
             e.st = 0;
             e.mvx = e.mvy = 0;
             e.a1 = Math.atan2(dy, dx);
-            e.facing = dx - dy > 0 ? 1 : -1;
+            e.facing = dx > 0 ? 1 : -1;
             this.setAnim(e, 'guardian_windup', false, 4);
             w.hazards.cone(e.x, e.y, e.a1, 200, 0.55, 0.95, def.damage, 0xff7050);
             w.sfx('sfx_warn', { volume: 0.4 });
@@ -627,7 +627,7 @@ export class EnemySystem {
           my += (dx / d) * 0.6;
           const l = Math.hypot(mx, my) || 1;
           this.setMove(e, mx / l, my / l, e.speed);
-          e.facing = dx - dy > 0 ? 1 : -1;
+          e.facing = dx > 0 ? 1 : -1;
           e.a3 -= dt; // recarga de invocação
           if (e.a3 <= 0) {
             e.a3 = 7;

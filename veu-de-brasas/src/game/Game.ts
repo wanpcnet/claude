@@ -124,7 +124,7 @@ export class Game {
     const h = window.innerHeight;
     this.app.renderer.resize(w, h);
     if (this.menuArt) {
-      const s = Math.max(w / 480, h / 270) * 1.06;
+      const s = Math.max(w / this.menuArt.texture.width, h / this.menuArt.texture.height) * (w > h * 1.2 ? 1.22 : 1.06);
       this.menuArt.scale.set(s);
       this.menuArt.position.set(this.menuArtX(), h / 2);
     }
@@ -136,7 +136,7 @@ export class Game {
   private menuArtX(): number {
     const w = window.innerWidth;
     const h = window.innerHeight;
-    return w > h * 1.2 ? w * 0.6 : w / 2;
+    return w > h * 1.2 ? w * 0.6 : w * 0.38;
   }
 
   toMenu(): void {

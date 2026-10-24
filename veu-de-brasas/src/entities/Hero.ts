@@ -55,7 +55,7 @@ export class Hero {
     this.shadow = new Sprite(w.assets.tex('fx', 'shadow'));
     this.shadow.anchor.set(0.5);
     // sombra circular no plano do chão (a camada deitada aplica a projeção)
-    this.shadow.scale.set(0.6, 1.37);
+    this.shadow.scale.set(0.8, 0.8);
     this.shadow.alpha = 0.6;
   }
 
@@ -150,8 +150,8 @@ export class Hero {
       wy = this.aimY;
     }
     // direção do sprite segundo a tela
-    const fx = wx - wy;
-    const fy = (wx + wy) * 0.5;
+    const fx = wx;
+    const fy = wy;
     if (Math.abs(fx) > Math.abs(fy) * 1.1) this.dir = fx > 0 ? 'right' : 'left';
     else if (fx || fy) this.dir = fy > 0 ? 'down' : 'up';
     // animação
@@ -170,7 +170,7 @@ export class Hero {
     // hit-flash breve e piscar discreto durante invulnerabilidade
     if (this.hurtT > 0.18) this.sprite.texture = w.assets.tex(this.sheet, `${this.pre}flash_${this.dir}`);
     // fluidez: inclinação na direção do movimento, balanço do passo e compressão ao esquivar/aterrissar
-    const svx = this.vx - this.vy;
+    const svx = this.vx;
     const targetLean = this.dashT > 0 ? 0 : clamp(svx / 900, -0.09, 0.09);
     this.lean += (targetLean - this.lean) * Math.min(1, dt * 12);
     this.squash += (0 - this.squash) * Math.min(1, dt * 10);

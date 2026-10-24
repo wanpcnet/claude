@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "art": "python3 scripts/art/build_all.py",
+    "art": "node scripts/art2/build_all.mjs",
+    "ground": "python3 scripts/art2/ground2d.py",
     "audio": "python3 scripts/audio/build_audio.py",
     "e2e": "node scripts/e2e/smoke.mjs"
   },

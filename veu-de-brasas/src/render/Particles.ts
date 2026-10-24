@@ -90,7 +90,7 @@ export class Particles {
     // partículas vivem no espaço da tela: velocidades "para cima" sobem na tela
     p.x = this.projector ? this.projector.x(o.x, o.y) : o.x;
     p.y = (this.projector ? this.projector.y(o.x, o.y) : o.y) - (o.h ?? 0);
-    p.sy = o.flat ? 0.5 : 1;
+    p.sy = 1;
     p.vx = o.vx ?? 0;
     p.vy = o.vy ?? 0;
     p.life = 0;

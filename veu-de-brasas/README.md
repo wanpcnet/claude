@@ -1,7 +1,7 @@
 # Véu de Brasas
 
-Ação **2.5D isométrica** de sobrevivência arcana com hordas (survivor-like), fantasia sombria
-bioluminescente, em **pixel art HD**. Quatro guardiões jogáveis, uma coroa em chamas e uma maré
+Ação **2D em visão de cima** de sobrevivência arcana com hordas (survivor-like), fantasia sombria
+bioluminescente, com **arte vetorial em estilo cartoon moderno** (contorno, sombreado em camadas e brilho). Quatro guardiões jogáveis, uma coroa em chamas e uma maré
 viva de criaturas cristalinas: reacenda as três Âncoras do Véu e destrua o Coração do Véu.
 
 - **Renderização:** PixiJS 8 + WebGL (sem Canvas 2D no código do jogo), TypeScript estrito, Vite.
@@ -20,7 +20,8 @@ viva de criaturas cristalinas: reacenda as três Âncoras do Véu e destrua o Co
 
 - Node.js 18+ (testado com Node 22) e npm.
 - Navegador moderno com WebGL (Chrome, Edge, Firefox, Safari).
-- Python 3 + numpy + Pillow + ffmpeg **apenas** se quiser regenerar a arte/áudio. Os assets
+- Playwright/Chromium (sprites) e Python 3 + numpy + Pillow (solo) + ffmpeg (áudio) **apenas** se quiser
+  regenerar a arte/áudio. Os assets
   prontos já estão em `public/assets/`.
 
 ## Comandos
@@ -33,7 +34,8 @@ npm run preview    # serve a build de produção
 npm test           # testes unitários e de conteúdo (Vitest)
 
 # opcionais
-npm run art        # regenera toda a arte em public/assets (Python)
+npm run art        # regenera sprites, efeitos, ícones e ilustração (SVG → PNG via Chromium)
+npm run ground     # regenera o solo das 3 arenas (Python + numpy + Pillow)
 npm run audio      # regenera trilha e efeitos (Python + ffmpeg)
 node scripts/e2e/smoke.mjs     # teste E2E de fumaça no Chromium (requer build + Playwright)
 node scripts/e2e/campaign.mjs  # percorre a campanha inteira em modo debug
@@ -141,32 +143,17 @@ scripts/e2e            testes de navegador (Playwright)
 tests/                 Vitest: grade espacial, pools, cartas, armas, save, mapas e roteiro
 ```
 
-### Projeção isométrica (2.5D)
+### Visão 2D e pipeline de arte
 
-A simulação (movimento, colisão, campo de fluxo, alcance das armas) acontece em coordenadas de
-mundo no plano do chão; só a renderização projeta, com isometria 2:1
-(`sx = (x − y)·0,75 + OX`, `sy = (x + y)·0,375 + OY`, em `src/render/Iso.ts`):
+O jogo é 2D em visão de cima (3/4): mundo e tela coincidem e a altura visual (saltos, projéteis,
+efeitos) é um deslocamento vertical. `src/render/Iso.ts` mantém a interface de projeção usada pelos
+sistemas, agora como identidade.
 
-- **Solo:** cada arena é pré-renderizada já em isometria por `scripts/art/ground.py`, com paredes
-  de rocha extrudadas (topo elevado + faces verticais) e bordas das plataformas caindo no abismo.
-- **Camadas deitadas:** sombras, avisos de ataque, Coroa de Brasas, círculos rúnicos, pulsos e o
-  mapa de luz recebem a matriz isométrica (círculos viram elipses no chão).
-- **Elementos em pé:** heroína, inimigos, props, projéteis e coletáveis são sprites posicionados
-  pela projeção e ordenados por profundidade (`x + y`); projéteis e efeitos têm altura visual
-  separada da posição no chão.
-- **Controles:** WASD/setas seguem as direções da tela (cima = cima na tela), convertidas para o
-  plano do mundo; a mira manual com o mouse faz a projeção inversa.
-
-Decisões de desempenho: simulação em passo fixo de 60 Hz; grade espacial com listas em
-arrays tipados (sem alocação por quadro); pools para inimigos, projéteis, partículas, números,
-perigos, luzes e coletáveis; atlas por domínio para batching; campo de fluxo recalculado só
-quando a heroína muda de célula (máx. 5×/s); separação da horda em passos alternados acima
-de 350 inimigos; mapa de luz em meia resolução; bloom só na camada de efeitos e só na
-qualidade Alta; culling de props; números de dano com orçamento por segundo.
-
-Qualidade gráfica: Auto/Baixa/Média/Alta (Baixa desliga o mapa de luz e reduz partículas;
-Auto escolhe pela detecção de dispositivo). Acessibilidade: reduzir flashes, reduzir tremor,
-números de dano opcionais, escala de interface, layout retrato (9:16) com cartas empilhadas.
+A arte é gerada por `scripts/art2/`: cada personagem, inimigo, chefe, prop, efeito e ícone é
+desenhado em SVG por código (peças com contorno escuro, gradiente, crescente de sombra e de
+brilho; animação por poses de partes) e rasterizado pelo Chromium em 2× (`meta.scale = 2`, filtragem
+linear). O solo (`scripts/art2/ground2d.py`) é pintado a partir dos layouts ASCII com bordas
+arredondadas, paredões com face e sombra, calçamento de pedras e água com espuma.
 
 ## Modo de depuração
 
@@ -203,9 +190,9 @@ metas.
 - Gamepad testado apenas com a Gamepad API simulada no navegador, não com controle físico.
 - A trilha é sintetizada (pads, cordas Karplus-Strong, sinos FM, bateria sintética): é original
   e funcional, mas não tem a riqueza de uma gravação orquestral.
-- A arte é pixel art desenhada por código (formas, rampas de paleta e pontilhado) — não houve
-  ferramenta de geração de imagens disponível. O resultado tem identidade consistente, mas
-  traço mais geométrico do que pixel art feita à mão quadro a quadro.
+- A arte é vetorial desenhada por código (sem ferramenta de geração de imagens nem ilustrador):
+  tem identidade consistente e acabamento limpo, mas as animações são poses de partes, não
+  animação quadro a quadro feita à mão.
 - O build do Vite inclui chunks internos do PixiJS (por exemplo, o renderizador Canvas e o
   WebGPU) que o Pixi carrega sob demanda; o jogo pede `preference: 'webgl'` e não os usa.
 - O balanceamento foi validado com um bot; jogadores humanos devem achar os chefes mais
