@@ -1,0 +1,1125 @@
+{
+"out": "public/assets/ui/keyart.png",
+"w": 1920,
+"h": 1080,
+"view": 6.2,
+"elev": 32,
+"bg": "#07060a",
+"exposure": 1.0,
+"hemi": 0.55,
+"key": 1.2,
+"keyColor": 12109055,
+"points": [
+{
+"x": -10,
+"z": -7.6,
+"y": 3.2,
+"color": 16751178,
+"i": 35,
+"d": 10
+},
+{
+"x": -2,
+"z": -7.6,
+"y": 3.2,
+"color": 16751178,
+"i": 35,
+"d": 10
+},
+{
+"x": 6,
+"z": -7.6,
+"y": 3.2,
+"color": 16751178,
+"i": 35,
+"d": 10
+},
+{
+"x": 14,
+"z": -7.6,
+"y": 3.2,
+"color": 16751178,
+"i": 35,
+"d": 10
+},
+{
+"x": -5,
+"z": -0.40000000000000013,
+"y": 2,
+"color": 9075455,
+"i": 40,
+"d": 8
+},
+{
+"x": -1.5,
+"z": -0.8,
+"y": 2,
+"color": 16756848,
+"i": 30,
+"d": 8
+},
+{
+"x": 9,
+"z": -2.4000000000000004,
+"y": 3,
+"color": 16734778,
+"i": 30,
+"d": 8
+}
+],
+"fx": [
+{
+"x": -5,
+"z": -0.40000000000000013,
+"r": 2,
+"color": "rgba(140,120,255,0.5)",
+"inner": 70
+},
+{
+"x": -1.5,
+"z": -0.8,
+"r": 2.6,
+"color": "rgba(255,160,70,0.45)",
+"inner": 90
+}
+],
+"items": [
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 20,
+"z": 14.4,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 20,
+"z": 10.4,
+"yaw": 270,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 16,
+"z": 14.4,
+"yaw": 270,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 16,
+"z": 10.4,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 12,
+"z": 14.4,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 12,
+"z": 10.4,
+"yaw": 270,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 8,
+"z": 14.4,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 8,
+"z": 10.4,
+"yaw": 270,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 4,
+"z": 14.4,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 4,
+"z": 10.4,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large_rocks.gltf",
+"x": 0,
+"z": 14.4,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 0,
+"z": 10.4,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -4,
+"z": 14.4,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -4,
+"z": 10.4,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -8,
+"z": 14.4,
+"yaw": 270,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -8,
+"z": 10.4,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -12,
+"z": 14.4,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large_rocks.gltf",
+"x": -12,
+"z": 10.4,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -16,
+"z": 14.4,
+"yaw": 270,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -16,
+"z": 10.4,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -20,
+"z": 14.4,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -20,
+"z": 10.4,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large_rocks.gltf",
+"x": -20,
+"z": -13.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -20,
+"z": -9.6,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -20,
+"z": -5.6,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -20,
+"z": -1.6,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -20,
+"z": 2.4,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -20,
+"z": 6.4,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -16,
+"z": -13.6,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large_rocks.gltf",
+"x": -16,
+"z": -9.6,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -16,
+"z": -5.6,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -16,
+"z": -1.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -16,
+"z": 2.4,
+"yaw": 270,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -16,
+"z": 6.4,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -12,
+"z": -13.6,
+"yaw": 270,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -12,
+"z": -9.6,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -12,
+"z": -5.6,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -12,
+"z": -1.6,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -12,
+"z": 2.4,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -12,
+"z": 6.4,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -8,
+"z": -13.6,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -8,
+"z": -9.6,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -8,
+"z": -5.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -8,
+"z": -1.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -8,
+"z": 2.4,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -8,
+"z": 6.4,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -4,
+"z": -13.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -4,
+"z": -9.6,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large_rocks.gltf",
+"x": -4,
+"z": -5.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -4,
+"z": -1.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -4,
+"z": 2.4,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": -4,
+"z": 6.4,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 0,
+"z": -13.6,
+"yaw": 270,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 0,
+"z": -9.6,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 0,
+"z": -5.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 0,
+"z": -1.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 0,
+"z": 2.4,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large_rocks.gltf",
+"x": 0,
+"z": 6.4,
+"yaw": 270,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 4,
+"z": -13.6,
+"yaw": 270,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large_rocks.gltf",
+"x": 4,
+"z": -9.6,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 4,
+"z": -5.6,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 4,
+"z": -1.6,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 4,
+"z": 2.4,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 4,
+"z": 6.4,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large_rocks.gltf",
+"x": 8,
+"z": -13.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large_rocks.gltf",
+"x": 8,
+"z": -9.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 8,
+"z": -5.6,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large_rocks.gltf",
+"x": 8,
+"z": -1.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 8,
+"z": 2.4,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 8,
+"z": 6.4,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 12,
+"z": -13.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large_rocks.gltf",
+"x": 12,
+"z": -9.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 12,
+"z": -5.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 12,
+"z": -1.6,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 12,
+"z": 2.4,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 12,
+"z": 6.4,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 16,
+"z": -13.6,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 16,
+"z": -9.6,
+"yaw": 270,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 16,
+"z": -5.6,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 16,
+"z": -1.6,
+"yaw": 270,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 16,
+"z": 2.4,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large_rocks.gltf",
+"x": 16,
+"z": 6.4,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 20,
+"z": -13.6,
+"yaw": 270,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 20,
+"z": -9.6,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 20,
+"z": -5.6,
+"yaw": 0,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 20,
+"z": -1.6,
+"yaw": 180,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large.gltf",
+"x": 20,
+"z": 2.4,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/floor_tile_large_rocks.gltf",
+"x": 20,
+"z": 6.4,
+"yaw": 90,
+"shadow": false
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/wall.gltf",
+"x": -20,
+"z": -8.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/wall.gltf",
+"x": -16,
+"z": -8.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/wall_cracked.gltf",
+"x": -12,
+"z": -8.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/wall.gltf",
+"x": -8,
+"z": -8.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/wall.gltf",
+"x": -4,
+"z": -8.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/wall_cracked.gltf",
+"x": 0,
+"z": -8.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/wall_archedwindow_gated.gltf",
+"x": 4,
+"z": -8.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/wall.gltf",
+"x": 8,
+"z": -8.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/wall_cracked.gltf",
+"x": 12,
+"z": -8.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/wall.gltf",
+"x": 16,
+"z": -8.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/wall_archedwindow_gated.gltf",
+"x": 20,
+"z": -8.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/torch_mounted.gltf",
+"x": -10,
+"z": -8.0,
+"y": 2.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/torch_mounted.gltf",
+"x": -2,
+"z": -8.0,
+"y": 2.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/torch_mounted.gltf",
+"x": 6,
+"z": -8.0,
+"y": 2.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/torch_mounted.gltf",
+"x": 14,
+"z": -8.0,
+"y": 2.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/pillar_decorated.gltf",
+"x": -12,
+"z": -5.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/pillar_decorated.gltf",
+"x": 12,
+"z": -5.6
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/barrel_large.gltf",
+"x": -9.5,
+"z": -6.6,
+"yaw": 0,
+"y": 0
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/barrel_small_stack.gltf",
+"x": -7.5,
+"z": -7.0,
+"yaw": 30,
+"y": 0
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/crates_stacked.gltf",
+"x": 9,
+"z": -6.6,
+"yaw": 10,
+"y": 0
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/chest_gold.gltf",
+"x": 4.5,
+"z": -6.6,
+"yaw": 200,
+"y": 0
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/candle_triple.gltf",
+"x": -5,
+"z": -7.1,
+"yaw": 0,
+"y": 0
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/banner_patternA_red.gltf",
+"x": -2,
+"z": -8.0,
+"yaw": 0,
+"y": 2.2
+},
+{
+"file": "/assets-src/kaykit/KayKit_Dungeon_Pack_1.1_FREE/Assets/gltf/banner_patternA_red.gltf",
+"x": 6,
+"z": -8.0,
+"yaw": 0,
+"y": 2.2
+},
+{
+"file": "/assets-src/kaykit/KayKit_Adventurers_2.0_FREE/Characters/gltf/Knight.glb",
+"x": -1.5,
+"z": -0.8,
+"yaw": 70,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_CombatMelee.glb",
+"anim": "Melee_1H_Attack_Slice_Diagonal",
+"t": 0.35,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Adventurers_2.0_FREE/Assets/gltf/sword_1handed.gltf",
+"bone": "handslotr"
+},
+{
+"file": "/assets-src/kaykit/KayKit_Adventurers_2.0_FREE/Assets/gltf/shield_badge_color.gltf",
+"bone": "handslotl"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Adventurers_2.0_FREE/Characters/gltf/Barbarian.glb",
+"x": -3.3,
+"z": -2.4000000000000004,
+"yaw": 60,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_CombatMelee.glb",
+"anim": "Melee_2H_Attack_Chop",
+"t": 0.3,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Adventurers_2.0_FREE/Assets/gltf/axe_2handed.gltf",
+"bone": "handslotr"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Adventurers_2.0_FREE/Characters/gltf/Mage.glb",
+"x": -5,
+"z": -0.40000000000000013,
+"yaw": 50,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_CombatRanged.glb",
+"anim": "Ranged_Magic_Shoot",
+"t": 0.45,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Adventurers_2.0_FREE/Assets/gltf/staff.gltf",
+"bone": "handslotr"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Adventurers_2.0_FREE/Characters/gltf/Ranger.glb",
+"x": -6.2,
+"z": -2.8,
+"yaw": 70,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_CombatRanged.glb",
+"anim": "Ranged_Bow_Release",
+"t": 0.15,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Adventurers_2.0_FREE/Assets/gltf/bow_withString.gltf",
+"bone": "handslotl"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Adventurers_2.0_FREE/Characters/gltf/Rogue_Hooded.glb",
+"x": -3,
+"z": 1.0,
+"yaw": 80,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_CombatMelee.glb",
+"anim": "Melee_Dualwield_Attack_Slice",
+"t": 0.4,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Adventurers_2.0_FREE/Assets/gltf/dagger.gltf",
+"bone": "handslotr"
+},
+{
+"file": "/assets-src/kaykit/KayKit_Adventurers_2.0_FREE/Assets/gltf/dagger.gltf",
+"bone": "handslotl"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Warrior.glb",
+"x": 1.8,
+"z": -1.4000000000000001,
+"yaw": -83.48003532868027,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_CombatMelee.glb",
+"anim": "Melee_1H_Attack_Chop",
+"t": 0.25,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Axe.gltf",
+"bone": "handslotr"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Minion.glb",
+"x": 3,
+"z": 0.3999999999999999,
+"yaw": -75.59952251098215,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_MovementBasic.glb",
+"anim": "Running_A",
+"t": 0.42000000000000004,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Blade.gltf",
+"bone": "handslotr"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Rogue.glb",
+"x": 3.6,
+"z": -3.1,
+"yaw": -109.66846951513705,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_Special.glb",
+"anim": "Skeletons_Walking",
+"t": 0.5900000000000001,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Blade.gltf",
+"bone": "handslotr"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Mage.glb",
+"x": 5.5,
+"z": -0.8,
+"yaw": -93.27224046997814,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_CombatRanged.glb",
+"anim": "Ranged_Magic_Shoot",
+"t": 0.76,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Staff.gltf",
+"bone": "handslotr"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Warrior.glb",
+"x": 6.5,
+"z": 1.1999999999999997,
+"yaw": -107.53773277298711,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_CombatMelee.glb",
+"anim": "Melee_1H_Attack_Chop",
+"t": 0.93,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Axe.gltf",
+"bone": "handslotr"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Minion.glb",
+"x": 7,
+"z": -4.2,
+"yaw": -72.76330514973185,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_MovementBasic.glb",
+"anim": "Running_A",
+"t": 0.10000000000000009,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Blade.gltf",
+"bone": "handslotr"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Rogue.glb",
+"x": 8.5,
+"z": -1.4000000000000001,
+"yaw": -100.25935368940145,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_Special.glb",
+"anim": "Skeletons_Walking",
+"t": 0.27,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Blade.gltf",
+"bone": "handslotr"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Mage.glb",
+"x": 9.5,
+"z": 0.7999999999999998,
+"yaw": -92.34225432500119,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_CombatRanged.glb",
+"anim": "Ranged_Magic_Shoot",
+"t": 0.44000000000000017,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Staff.gltf",
+"bone": "handslotr"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Warrior.glb",
+"x": 10.5,
+"z": -2.8,
+"yaw": -65.0350025965266,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_CombatMelee.glb",
+"anim": "Melee_1H_Attack_Chop",
+"t": 0.6100000000000001,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Axe.gltf",
+"bone": "handslotr"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Minion.glb",
+"x": 5,
+"z": -4.800000000000001,
+"yaw": -72.38736645531286,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_MovementBasic.glb",
+"anim": "Running_A",
+"t": 0.78,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Blade.gltf",
+"bone": "handslotr"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Rogue.glb",
+"x": 11.5,
+"z": -0.10000000000000009,
+"yaw": -66.19962151266844,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_Special.glb",
+"anim": "Skeletons_Walking",
+"t": 0.9500000000000002,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Blade.gltf",
+"bone": "handslotr"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Mage.glb",
+"x": 2.6,
+"z": 2.0,
+"yaw": -92.32300052041883,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_CombatRanged.glb",
+"anim": "Ranged_Magic_Shoot",
+"t": 0.1200000000000001,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Staff.gltf",
+"bone": "handslotr"
+}
+]
+},
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/characters/gltf/Skeleton_Warrior.glb",
+"x": 9.5,
+"z": -0.40000000000000013,
+"yaw": -100,
+"scale": 1.6,
+"animFile": "/assets-src/kaykit/KayKit_Character_Animations_1.1/Animations/gltf/Rig_Medium/Rig_Medium_Special.glb",
+"anim": "Skeletons_Taunt",
+"t": 0.4,
+"attach": [
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Axe.gltf",
+"bone": "handslotr"
+},
+{
+"file": "/assets-src/kaykit/KayKit_Skeletons_1.1_FREE/assets/gltf/Skeleton_Shield_Large_A.gltf",
+"bone": "handslotl"
+}
+]
+}
+]
+}

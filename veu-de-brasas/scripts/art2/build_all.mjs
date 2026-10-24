@@ -1,6 +1,6 @@
 // Pipeline de arte v2 (vetorial): gera todos os atlas, ícones, retratos, emblema, ilustração do
 // menu, cursor e a fonte dos números de dano. Uso: node scripts/art2/build_all.mjs [parte...]
-// O solo e os props do cenário vêm de scripts/assets/ground_cc0.py e props_cc0.mjs (texturas/modelos CC0).
+// Personagens, solo, props e ilustração do menu vêm dos modelos KayKit (scripts/assets/).
 import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -35,7 +35,7 @@ if (on('bosses')) {
   const b = bossSprites();
   log('bosses', await atlas(join(OUT, 'enemies', 'bosses'), 'bosses.png', b.sprites, b.animations, 4096));
 }
-// props vetoriais antigos: substituídos por scripts/assets/props_cc0.mjs (só rodam se pedidos explicitamente)
+// props vetoriais antigos: substituídos pelos props KayKit (só rodam se pedidos explicitamente)
 if (want.has('props-vector')) {
   const p = propSprites();
   log('props', await atlas(join(OUT, 'environment', 'props'), 'props.png', p.sprites, p.animations, 2048));
@@ -52,7 +52,8 @@ if (on('icons')) {
 if (on('ui')) {
   await single(join(OUT, 'ui', 'emblem.png'), 96, 96, emblemSvg(), 2);
   await single(join(OUT, 'ui', 'cursor.png'), 16, 16, cursorSvg(), 2);
-  await single(join(OUT, 'ui', 'keyart.png'), 960, 540, keyartSvg(), 2);
+  // a ilustração do menu agora é renderizada com os modelos KayKit (npm run keyart)
+  if (want.has('keyart-vector')) await single(join(OUT, 'ui', 'keyart.png'), 960, 540, keyartSvg(), 2);
   // barras usadas pelo motor (vida de elites/chefes): tamanhos fixos em px
   await single(join(OUT, 'ui', 'bar_frame.png'), 128, 24, `<rect x="1" y="3" width="126" height="18" rx="9" fill="#120c1a" fill-opacity="0.85" stroke="#1b1226" stroke-width="2"/><rect x="2.5" y="4.5" width="123" height="15" rx="7.5" fill="none" stroke="#ffffff" stroke-opacity="0.18"/>`, 1);
   const fill = (a, b) => `<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="64" height="16" fill="url(#g)"/><rect width="64" height="5" fill="#fff" opacity="0.25"/>`;

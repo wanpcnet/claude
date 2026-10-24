@@ -81,22 +81,22 @@ describe('Roteiro dos atos', () => {
 describe('Assets existem no repositório', () => {
   it('atlas, áudio, fontes e solo', () => {
     const base = 'public/assets/';
-    // atlas versionados no Git (os sprites SOV ficam fora por licença: ver checagem abaixo)
-    for (const [a, ext] of [['effects/fx', 'png'], ['environment/props', 'webp'], ['ui/icons', 'png']]) {
+    for (const [a, ext] of [['effects/fx', 'png'], ['environment/props', 'webp'], ['ui/icons', 'png'], ['chars/enemies', 'webp'], ['chars/bosses', 'webp']]) {
       expect(existsSync(`${base}${a}.${ext}`), a).toBe(true);
       const j = JSON.parse(readFileSync(base + a + '.json', 'utf8'));
       expect(Object.keys(j.frames).length).toBeGreaterThan(5);
     }
-    // sprites SOV: só existem depois de `npm run assets:sov` (pacotes baixados localmente)
-    if (existsSync(base + 'sov/manifest.json')) {
-      const man = JSON.parse(readFileSync(base + 'sov/manifest.json', 'utf8'));
-      const enemies = JSON.parse(readFileSync(base + 'sov/enemies.json', 'utf8'));
-      for (const e of Object.values(ENEMIES)) {
-        expect(man.enemies[e.anim], e.anim).toBeTruthy();
-        expect(enemies.animations[`${e.walkAnim}_S`], e.walkAnim).toBeTruthy();
-        expect(enemies.animations[`${e.anim}_death_S`], e.anim).toBeTruthy();
+    // sprites dos personagens (KayKit, CC0): toda espécie tem caminhada e morte nas 5 direções desenhadas
+    const man = JSON.parse(readFileSync(base + 'chars/manifest.json', 'utf8'));
+    const enemies = JSON.parse(readFileSync(base + 'chars/enemies.json', 'utf8'));
+    for (const e of Object.values(ENEMIES)) {
+      expect(man.enemies[e.anim], e.anim).toBeTruthy();
+      for (const d of ['S', 'SE', 'E', 'NE', 'N']) {
+        expect(enemies.animations[`${e.walkAnim}_${d}`], `${e.walkAnim} ${d}`).toBeTruthy();
+        expect(enemies.animations[`${e.anim}_death_${d}`], `${e.anim} ${d}`).toBeTruthy();
       }
     }
+    for (const b of ['toad', 'heart']) expect(man.bosses[b], b).toBeTruthy();
     const props = JSON.parse(readFileSync(base + 'environment/props.json', 'utf8'));
     for (const [id, def] of Object.entries(PROPS)) for (let v = 0; v < def.variants; v++) expect(props.frames[`${id}_${v}`], id).toBeTruthy();
     for (const m of ['arenaA', 'arenaB', 'arenaC']) {

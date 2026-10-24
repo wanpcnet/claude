@@ -2,31 +2,28 @@
 
 ## Resumo
 
-| Pasta | Conteúdo | Origem / licença | No Git? |
-|---|---|---|---|
-| `public/assets/sov/` | Herói (cavaleiro), inimigos, elites, chefes e efeitos mágicos em 8 direções | **Characters & effects by [SovDigital](https://sovdigital.itch.io)** — pacotes grátis *Knight Free Sampler*, *Wolf Free*, *Blade Assassin Boss Free* (+ status sheets) e *Magic Effects Free*. A licença permite uso em jogos, mas **proíbe redistribuir os arquivos brutos** | **Não** (`.gitignore`) — gerado localmente por `npm run assets:sov` |
-| `public/assets/environment/ground/` | Solo das 3 arenas em chunks WebP de 512 px, composto a partir dos layouts ASCII | Texturas fotográficas **CC0** do [Poly Haven](https://polyhaven.com) (burned_ground_01, dry_ground_rocks, cobblestone_floor_06/07, gray_rocks, brown_mud_rocks_01, forest_leaves_02, lichen_rock, aerial_rocks_02) — `scripts/assets/ground_cc0.py` | Sim |
-| `public/assets/environment/props.*` | 33 props do cenário (troncos mortos, pinheiros, rochas, estátua, busto, braseiro, lanternas, raízes, vaso…) renderizados em 2.5D | Modelos 3D **CC0** do [Poly Haven](https://polyhaven.com), renderizados com three.js — `scripts/assets/props_cc0.mjs` | Sim |
-| `public/assets/environment/props_keep.*` | Âncora (apagada/acesa) e fenda | Original — pipeline vetorial `scripts/art2/props.mjs` | Sim |
-| `public/assets/effects/fx.*` | Coroa de Brasas, flechas, Lança Solar, raio, lótus, vento, adaga, míssil, meteoro, gelo, espinhos, totem, fogos-fátuos, golpes, explosões, fumaça, telegraphs, coletáveis, luzes | Original — `scripts/art2/fx.mjs` | Sim |
-| `public/assets/ui/` | Molduras de cartas, painéis, botões, barras, ícones de armas/passivas/evoluções, emblema, cursor, fonte bitmap dos números, ilustração do menu | Original — `scripts/art2/icons.mjs`, `scripts/art2/keyart.mjs` (números gerados da Alegreya Sans, OFL) | Sim |
-| `public/assets/audio/` | 3 músicas em loop, 2 vinhetas e 28 efeitos | Original — síntese em `scripts/audio/build_audio.py` | Sim |
+Toda a arte do jogo vem de **um único conjunto**: os pacotes gratuitos **KayKit**, de
+[Kay Lousberg](https://kaylousberg.itch.io), licença **CC0** (domínio público). Os modelos 3D são
+renderizados por scripts deste repositório no ângulo da câmera do jogo; como é CC0, a saída gerada
+fica no Git.
 
-### Como gerar os sprites SOV localmente
+| Pasta | Conteúdo | Origem |
+|---|---|---|
+| `public/assets/chars/` | 5 heróis (cavaleiro, arqueiro, maga, bárbaro, ladina), 9 inimigos e 2 chefes em 5 direções (+ espelho), com ataque, esquiva, dano e morte; retratos | KayKit *Adventurers*, *Skeletons* e *Character Animations* — `scripts/assets/build_kaykit.mjs` |
+| `public/assets/environment/ground/` | Solo das 3 arenas (masmorra, floresta, templo cercado de água) composto a partir dos layouts ASCII | KayKit *Dungeon* e *Forest Nature* — `scripts/assets/build_kaykit_env.mjs` + `ground_kaykit.py` |
+| `public/assets/environment/props.*` | Props do cenário (árvores, rochas, arbustos, tochas, velas, barris, caixotes, pilares, baú, Âncora) | KayKit *Dungeon* e *Forest Nature* — `scripts/assets/build_kaykit_env.mjs` |
+| `public/assets/ui/keyart.png` | Ilustração do menu | Cena montada com os modelos KayKit — `scripts/assets/render_scene.mjs` + `keyart.json` |
+| `public/assets/effects/fx.*` | Efeitos das armas, coletáveis, luzes e avisos (estilo suave, sem contorno) | Original — `scripts/art2/fx.mjs` (`npm run fx`) |
+| `public/assets/environment/props_keep.*` | Fenda do Véu | Original — `scripts/art2/props.mjs` |
+| `public/assets/ui/` (demais) | Molduras, painéis, botões, barras, ícones, emblema, cursor, fonte bitmap dos números | Original — `scripts/art2/icons.mjs`, `scripts/art2/keyart.mjs` (números gerados da Alegreya Sans, OFL) |
+| `public/assets/audio/` | 3 músicas em loop, 2 vinhetas e 28 efeitos | Original — síntese em `scripts/audio/build_audio.py` |
 
-1. Baixe os pacotes grátis no itch.io (exige aceitar a licença na página de cada um):
-   [free-knight](https://sovdigital.itch.io/free-knight), [free-wolf](https://sovdigital.itch.io/free-wolf),
-   [free-blade-assassin](https://sovdigital.itch.io/free-blade-assassin) (pacote + *status sheets*) e
-   [free-magic-effects](https://sovdigital.itch.io/free-magic-effects).
-2. Coloque os `.zip` em `assets-src/sov/` (pasta ignorada pelo Git).
-3. Rode `npm run assets:sov` — gera atlas WebP otimizados em `public/assets/sov/`.
+### Regenerar a arte
 
-Sem esse passo o jogo não encontra os personagens. A build publicada já inclui os atlas gerados.
-
-### Cenário CC0
-
-`npm run ground` e `npm run props` baixam as texturas/modelos do Poly Haven para `assets-src/cc0/`
-(primeira execução) e regeneram o solo e os props. CC0 = domínio público, por isso a saída fica no Git.
+1. `npm run kaykit:fetch` — baixa os 5 pacotes KayKit do itch.io para `assets-src/kaykit/` (ignorado pelo Git).
+2. `npm run chars` — sprites dos personagens e retratos.
+3. `npm run env` e depois `npm run ground` — camadas do solo, props e composição das arenas.
+4. `npm run keyart` — ilustração do menu. `npm run fx` — efeitos.
 
 ### Áudio e mapas
 
@@ -45,7 +42,7 @@ Sem esse passo o jogo não encontra os personagens. A build publicada já inclui
 | [Cinzel](https://fonts.google.com/specimen/Cinzel) via `@fontsource/cinzel` | SIL Open Font License 1.1 | Títulos da interface (empacotada localmente pelo Vite) |
 | [Alegreya Sans](https://fonts.google.com/specimen/Alegreya+Sans) via `@fontsource/alegreya-sans` | SIL Open Font License 1.1 | Texto da interface (empacotada localmente) |
 | Vite, TypeScript, Vitest | MIT / Apache-2.0 | Ferramentas de build e teste |
-| [three.js](https://threejs.org) | MIT | Só na pipeline offline (render dos props) |
+| [three.js](https://threejs.org) | MIT | Só na pipeline offline (render dos modelos KayKit) |
 
 As fontes saem do pacote npm e são copiadas para `dist/` na build; não há nenhuma requisição a
 CDN em tempo de execução.

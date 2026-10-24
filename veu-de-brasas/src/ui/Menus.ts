@@ -79,7 +79,7 @@ export class Menus {
     const s = this.game.save.data;
     const wrap = el('div', 'main-menu');
     const logo = el('div', 'logo');
-    logo.innerHTML = `<img class="emblem" src="${BASE}ui/emblem.png" alt=""><h1>Véu de Brasas</h1><p class="tag">Quatro guardiões. Uma coroa em chamas. Uma maré viva.</p>`;
+    logo.innerHTML = `<img class="emblem" src="${BASE}ui/emblem.png" alt=""><h1>Véu de Brasas</h1><p class="tag">Cinco guardiões. Uma coroa em chamas. Uma maré de ossos.</p>`;
     const nav = el('nav', 'menu-buttons glass');
     nav.append(
       this.button('Jogar', () => this.playSelect(), 'primary'),

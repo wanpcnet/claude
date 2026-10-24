@@ -20,7 +20,7 @@ export class Hero {
   dir: Dir = 'down';
   facing: Facing = { src: 'S', flip: false };
   private fps: Record<string, number> = {};
-  private baseScale = 1.3;
+  private baseScale = 1.05;
   private attackAlt = false;
   aimX = 0;
   aimY = 1;

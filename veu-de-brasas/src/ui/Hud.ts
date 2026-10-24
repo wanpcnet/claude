@@ -237,5 +237,5 @@ export class Hud {
 }
 
 function actLabel(i: number): string {
-  return ['Ato I · Jardim das Cinzas', 'Ato II · Bosque de Vidro', 'Ato III · Santuário Submerso'][i] ?? '';
+  return ['Ato I · Jardim das Cinzas', 'Ato II · Bosque Esquecido', 'Ato III · Santuário Submerso'][i] ?? '';
 }

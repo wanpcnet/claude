@@ -5,7 +5,9 @@
 let UID = 0;
 export const uid = (p = 'u') => `${p}${(UID++).toString(36)}`;
 
-export const OUT = '#1b1226';
+// VEU_FX_SOFT=1: estilo suave sem contorno escuro (efeitos no tom dos modelos KayKit)
+export const SOFT = typeof process !== 'undefined' && process.env.VEU_FX_SOFT === '1';
+export const OUT = SOFT ? 'rgba(0,0,0,0)' : '#1b1226';
 
 // ---------------------------------------------------------------- cores
 export function hex2rgb(h) {
@@ -117,7 +119,7 @@ export function part(shape, base, opts = {}) {
   s += `<g fill="${opts.flat ? base : `url(#${gid})`}">${shape}</g>`;
   if (!opts.glow) s += `<g mask="url(#${m1})" fill="${shade}" opacity="${opts.so ?? 0.85}">${shape}</g>`;
   if (opts.hl !== 0) s += `<g mask="url(#${m2})" fill="${hi}" opacity="${opts.ho ?? 0.7}">${shape}</g>`;
-  if (opts.outline !== false) s += `<g fill="none" stroke="${opts.oc ?? OUT}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round">${shape}</g>`;
+  if (opts.outline !== false && !SOFT) s += `<g fill="none" stroke="${opts.oc ?? OUT}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round">${shape}</g>`;
   return s;
 }
 /** forma lisa (detalhes pequenos) */

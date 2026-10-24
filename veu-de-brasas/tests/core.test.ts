@@ -128,12 +128,15 @@ describe('Save', () => {
 describe('Heróis e progressão', () => {
   it('cada herói jogável começa com duas armas válidas e tem sprites próprios', () => {
     expect(PLAYABLE.length).toBeGreaterThan(0);
-    const man = existsSync('public/assets/sov/manifest.json') ? JSON.parse(readFileSync('public/assets/sov/manifest.json', 'utf8')) : null;
+    expect(PLAYABLE.length).toBe(5);
+    const man = JSON.parse(readFileSync('public/assets/chars/manifest.json', 'utf8'));
     for (const h of PLAYABLE) {
       const b = newBuild(h.id);
       expect(Object.keys(b.weapons).sort()).toEqual([...h.start].sort());
       for (const w of h.start) expect(WEAPONS[w]).toBeTruthy();
-      if (man) for (const a of ['idle', 'walk', 'shoot', 'dash', 'hurt', 'death']) expect(man.hero[h.id].anims[a], `${h.id} ${a}`).toBeTruthy();
+      for (const a of ['idle', 'walk', 'shoot', 'shoot2', 'dash', 'hurt', 'death']) expect(man.hero[h.id].anims[a], `${h.id} ${a}`).toBeTruthy();
+      expect(existsSync(`public/assets/chars/hero_${h.id}.webp`)).toBe(true);
+      expect(existsSync(`public/assets/chars/portrait_${h.id}.webp`)).toBe(true);
     }
   });
   it('modificadores do herói alteram atributos', () => {

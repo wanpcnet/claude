@@ -1,28 +1,27 @@
 # Véu de Brasas
 
-Ação **2D em visão de cima** de sobrevivência arcana com hordas (survivor-like), fantasia sombria.
-Personagens e efeitos em **sprites HD 2.5D de 8 direções (SovDigital)**, sobre cenário com
-texturas fotográficas e props 3D CC0. Reacenda as três Âncoras do Véu e destrua o chefe final.
+Ação **2D em visão de cima** de sobrevivência arcana com hordas (survivor-like), fantasia estilizada.
+Personagens, cenário e ilustração renderizados a partir dos modelos 3D **KayKit** (CC0), todos do
+mesmo artista. Reacenda as três Âncoras do Véu e derrote o Lich do Véu.
 
 - **Renderização:** PixiJS 8 + WebGL (sem Canvas 2D no código do jogo), TypeScript estrito, Vite.
-- **Arte:** personagens SovDigital (fora do Git por licença — veja como gerar em
-  [ASSET_CREDITS.md](ASSET_CREDITS.md)), cenário CC0 (Poly Haven), interface, mapas e áudio originais.
-- **Herói jogável:** Aldric, Cavaleiro do Véu, com habilidade ativa (Q) e **Suprema** (R)
-  (outros 3 heróis voltam quando houver sprites no mesmo estilo).
+- **Arte:** KayKit (Kay Lousberg, CC0) renderizado por scripts deste repositório; efeitos,
+  interface, mapas e áudio originais (veja [ASSET_CREDITS.md](ASSET_CREDITS.md)).
+- **5 heróis jogáveis** (Aldric, Lysandro, Orinna, Brann, Nyx), cada um com armas iniciais,
+  habilidade ativa (Q) e **Suprema** (R) próprias.
 - **18 armas**, 20 passivas, **10 evoluções** e **7 combos** (até 6 armas + 6 passivas por partida).
 - **3 modos:** Campanha de 3 atos (~12–18 min), **Sem Fim** (recorde de sobrevivência) e
   **Desafio Diário** (herói e modificadores sorteados pela data).
 - **Progressão entre partidas:** árvore de 13 talentos no Santuário, 6 relíquias, desbloqueio de
   heróis, 3 dificuldades (Normal, Pesadelo, Tormento), aparências da coroa e modificadores.
-- 7 espécies comuns, 2 elites, 2 chefes com fases; save local versionado (v3).
+- 7 espécies de esqueletos, 2 elites, 2 chefes com fases; save local versionado (v3).
 
 ## Requisitos
 
 - Node.js 18+ (testado com Node 22) e npm.
 - Navegador moderno com WebGL (Chrome, Edge, Firefox, Safari).
 - Playwright/Chromium (sprites) e Python 3 + numpy + Pillow (solo) + ffmpeg (áudio) **apenas** se quiser
-  regenerar a arte/áudio. Os sprites SOV precisam ser gerados uma vez com `npm run assets:sov`
-  (veja [ASSET_CREDITS.md](ASSET_CREDITS.md)); o resto já está em `public/assets/`.
+  regenerar a arte/áudio. Os assets prontos já estão em `public/assets/`.
 
 ## Comandos
 
@@ -62,7 +61,7 @@ primeiro clique/tecla (política de autoplay dos navegadores).
 
 1. **Ato I — Jardim das Cinzas:** tutorial integrado; dissipe a maré, reacenda a primeira
    Âncora permanecendo no círculo e derrote o **Guardião de Coral**.
-2. **Ato II — Bosque de Vidro:** derrote a **Sacerdotisa de Vidro** na praça, reacenda a
+2. **Ato II — Bosque Esquecido:** derrote a **Sacerdotisa de Vidro** na praça, reacenda a
    segunda Âncora atrás das formações de cristal e enfrente o **Batráquio Colossal**.
 3. **Ato III — Santuário Submerso:** reacenda a Âncora do Altar de Cobre e destrua o
    **Coração do Véu** (três fases).

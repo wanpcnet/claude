@@ -29,7 +29,7 @@ try {
   await page.waitForSelector('#loading.done', { timeout: 60000 });
   await page.evaluate(() => {
     const s = window.__veu.save.data;
-    s.heroes = ['lysa', 'orin', 'brann', 'nyx'];
+    s.heroes = ['knight', 'lysa', 'orin', 'brann', 'nyx'];
     s.ashes = 5000;
     s.difficulties = ['normal', 'nightmare', 'torment'];
   });

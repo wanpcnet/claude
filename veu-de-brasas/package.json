@@ -11,8 +11,11 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "art": "node scripts/art2/build_all.mjs",
-    "ground": "python3 scripts/assets/ground_cc0.py",
-    "props": "node scripts/assets/props_cc0.mjs",
+    "fx": "VEU_FX_SOFT=1 node scripts/art2/build_all.mjs fx",
+    "env": "node scripts/assets/build_kaykit_env.mjs",
+    "ground": "python3 scripts/assets/ground_kaykit.py",
+    "keyart": "node scripts/assets/render_scene.mjs scripts/assets/keyart.json",
+    "kaykit:fetch": "python3 scripts/assets/fetch_kaykit.py",
     "chars": "node scripts/assets/build_kaykit.mjs",
     "audio": "python3 scripts/audio/build_audio.py",
     "e2e": "node scripts/e2e/smoke.mjs"

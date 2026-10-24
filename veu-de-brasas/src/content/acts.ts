@@ -73,10 +73,10 @@ export const ACTS: ActScript[] = [
   },
   {
     map: 'arenaB',
-    title: 'Ato II — Bosque de Vidro',
+    title: 'Ato II — Bosque Esquecido',
     subtitle: 'O vidro canta onde a fenda respira',
     stages: [
-      { type: 'kills', goal: 260, text: 'Abra caminho pelo Bosque de Vidro' },
+      { type: 'kills', goal: 260, text: 'Abra caminho pelo Bosque Esquecido' },
       { type: 'elite', enemy: 'priestess', at: 'E', text: 'A Necromante Celeste guarda a praça' },
       { type: 'anchor', channel: 22, text: 'Reacenda a segunda Âncora atrás das formações' },
       { type: 'boss', boss: 'toad', at: 'E', text: 'O Senhor dos Ossos desperta!' },
