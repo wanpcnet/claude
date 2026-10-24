@@ -32,7 +32,7 @@ export interface Build {
   meta?: MetaBonus;
 }
 
-export function newBuild(hero = 'lysa', meta: MetaBonus = emptyMeta()): Build {
+export function newBuild(hero = 'knight', meta: MetaBonus = emptyMeta()): Build {
   const def = heroById(hero);
   const weapons: Partial<Record<WeaponId, number>> = {};
   for (const w of def.start) weapons[w] = 1;

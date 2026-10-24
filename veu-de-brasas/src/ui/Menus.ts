@@ -3,7 +3,7 @@ import { BASE } from '../game/AssetLoader';
 import type { Game } from '../game/Game';
 import { RARITY_LABEL, type CardDef } from '../content/upgrades';
 import { META_ITEMS, type Quality } from '../systems/Save';
-import { HEROES, heroById } from '../content/heroes';
+import { PLAYABLE, heroById } from '../content/heroes';
 import { WEAPONS } from '../content/weapons';
 import { TALENTS, RELICS, DIFFICULTIES, MODES, DAILY_MODS, dailyChallenge, difficultyById, type ModeId } from '../content/meta';
 import { startWeaponNames } from '../systems/Abilities';
@@ -104,13 +104,13 @@ export class Menus {
     // heróis
     const daily = this.selMode === 'daily' ? dailyChallenge() : null;
     const heroes = el('div', 'hero-grid');
-    for (const h of HEROES) {
+    for (const h of PLAYABLE) {
       const owned = s.heroes.includes(h.id);
       const sel = daily ? daily.hero === h.id : s.selectedHero === h.id;
       const c = el('button', `hero-pick ${owned ? '' : 'locked'} ${sel ? 'sel' : ''}`) as HTMLButtonElement;
       c.type = 'button';
       const bars = (Object.entries(h.rating) as [string, number][]).map(([k, v]) => `<div class="rate"><span>${k}</span><i style="--v:${v / 5}"></i></div>`).join('');
-      c.innerHTML = `<div class="hp-art"><img src="${BASE}ui/portraits/${h.id}.png" alt=""></div>
+      c.innerHTML = `<div class="hp-art"><img src="${BASE}sov/portrait_${h.id}.webp" alt=""></div>
         <div class="hp-info"><b>${h.name}</b><small>${h.title}</small>
         <p>${h.desc}</p>
         <p class="kit"><img src="${BASE}ui/icons/${WEAPONS[h.start[0]].icon}.png" alt=""><img src="${BASE}ui/icons/${WEAPONS[h.start[1]].icon}.png" alt=""> ${startWeaponNames(h)}</p>
@@ -126,6 +126,9 @@ export class Menus {
       });
       heroes.append(c);
     }
+    const soon = el('div', 'hero-pick soon');
+    soon.innerHTML = `<div class="hp-art"><span>+3</span></div><div class="hp-info"><b>Em breve</b><small>Arqueira, Mago e Invocadora</small><p>Novos heróis chegam com os próximos pacotes de arte.</p></div>`;
+    heroes.append(soon);
     wrap.append(heroes);
     // modo
     const opts = el('div', 'opts');
@@ -392,9 +395,9 @@ export class Menus {
     const wrap = el('div', `panel dialog wide results ${r.victory ? 'win' : 'lose'}`);
     const endless = r.mode === 'endless';
     const title = endless ? `Sobreviveu ${fmtTime(r.time)}` : r.victory ? 'O Véu foi selado' : 'A brasa se apagou';
-    const sub = endless ? (r.record ? 'Novo recorde no modo Sem Fim!' : 'A maré sem fim cobrou seu preço.') : r.victory ? 'As três Âncoras ardem e o Coração do Véu silenciou.' : 'A maré venceu desta vez — cada tentativa revela novas combinações.';
+    const sub = endless ? (r.record ? 'Novo recorde no modo Sem Fim!' : 'A maré sem fim cobrou seu preço.') : r.victory ? 'As três Âncoras ardem e o Arauto Peçonhento caiu.' : 'A maré venceu desta vez — cada tentativa revela novas combinações.';
     const h = heroById(r.hero);
-    wrap.innerHTML = `<div class="res-head"><img src="${BASE}ui/portraits/${h.id}.png" alt=""><div><h2>${title}</h2><p class="sub">${sub}</p><p class="sub small">${h.name} · ${r.mode === 'daily' ? 'Desafio Diário' : endless ? 'Sem Fim' : 'Campanha'} · ${r.difficulty}${r.mode === 'daily' && r.record ? ' · <b>recorde do dia!</b>' : ''}</p></div></div>`;
+    wrap.innerHTML = `<div class="res-head"><img src="${BASE}sov/portrait_${h.id}.webp" alt=""><div><h2>${title}</h2><p class="sub">${sub}</p><p class="sub small">${h.name} · ${r.mode === 'daily' ? 'Desafio Diário' : endless ? 'Sem Fim' : 'Campanha'} · ${r.difficulty}${r.mode === 'daily' && r.record ? ' · <b>recorde do dia!</b>' : ''}</p></div></div>`;
     for (const u of r.unlocks) wrap.append(el('p', 'unlock', u));
     const stats = el('div', 'stats');
     const dmg = Object.entries(r.damage).sort((a, b) => b[1] - a[1]).slice(0, 5);

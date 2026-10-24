@@ -7,6 +7,7 @@ import { SpatialHash } from '../utils/SpatialHash';
 import { rng } from '../utils/rng';
 import { TAU, clamp } from '../utils/math';
 import { iso } from '../render/Iso';
+import { dir8 } from '../render/Dir8';
 import type { World } from '../world/World';
 
 const MAX_ENEMIES = 700;
@@ -39,14 +40,30 @@ export class EnemySystem {
 
   setAnim(e: Enemy, name: string, loop = true, fps?: number): void {
     if (e.anim === name) return;
-    const sheet = e.boss ? 'bosses' : 'enemies';
     e.anim = name;
-    e.frames = this.w.assets.anim(sheet, name);
-    e.flashFrames = this.w.assets.sheets[sheet].animations[name + '_f'] ?? e.frames;
     e.frame = 0;
     e.t = 0;
     e.loop = loop;
-    if (fps !== undefined) e.fps = fps;
+    // velocidade da animação vem dos metadados do sprite (quadros por segundo da arte)
+    const id = name.slice(0, name.indexOf('_'));
+    const info = this.w.assets.sov.enemies[id] ?? this.w.assets.sov.bosses[id];
+    const sub = name.slice(name.indexOf('_') + 1);
+    e.fps = info?.anims[sub]?.fps ?? fps ?? e.fps;
+    this.loadFrames(e);
+  }
+
+  /** quadros da animação atual na direção atual */
+  private loadFrames(e: Enemy): void {
+    const sheet = e.boss ? 'bosses' : 'enemies';
+    e.frames = this.w.assets.anim(sheet, `${e.anim}_${e.fdir.src}`);
+    e.flashFrames = e.frames;
+    if (e.frame >= e.frames.length) e.frame = e.frames.length - 1;
+  }
+
+  /** âncora (pés) do sprite pintado */
+  anchorFor(id: string): [number, number] {
+    const info = this.w.assets.sov.enemies[id] ?? this.w.assets.sov.bosses[id];
+    return info ? info.anchor : [0.5, 0.85];
   }
 
   spawn(type: string, x: number, y: number, opts: { summon?: boolean; noXp?: boolean } = {}): Enemy | null {
@@ -79,12 +96,13 @@ export class EnemySystem {
     e.anim = '';
     e.isSummon = !!opts.summon;
     e.noXp = !!opts.noXp;
-    e.scale = def.scale ?? 1;
+    e.scale = (def.scale ?? 1) * 1.25;
     e.fps = def.fps;
     this.setAnim(e, def.walkAnim, true, def.fps);
     e.frame = rng.int(0, e.frames.length - 1);
     const s = e.sprite;
-    s.anchor.set(0.5, def.anchorY ?? 0.8);
+    s.anchor.set(...this.anchorFor(def.id));
+    e.fdir = { src: 'S', flip: false };
     s.visible = true;
     s.alpha = 1;
     s.tint = 0xffffff;
@@ -118,7 +136,7 @@ export class EnemySystem {
     e.st = 0;
     if (e.bar) e.bar.visible = false;
     const sheet = e.boss ? 'bosses' : 'enemies';
-    e.frames = this.w.assets.anim(sheet, e.def.anim + '_death');
+    e.frames = this.w.assets.anim(sheet, `${e.def.anim}_death_${e.fdir.src}`);
     e.anim = 'death';
     e.frame = 0;
     e.t = 0;
@@ -197,7 +215,16 @@ export class EnemySystem {
       }
       e.flashT -= dt;
       e.flashCd -= dt;
-      e.sprite.texture = e.flashT > 0 && !e.boss ? e.flashFrames[e.frame % e.flashFrames.length] : e.frames[e.frame];
+      // direção do sprite: para onde anda; parado, encara a heroína
+      if (e.state !== 'spawn') {
+        const moving = Math.abs(e.mvx) + Math.abs(e.mvy) > 6;
+        const nf = dir8(moving ? e.mvx : hero.x - e.x, moving ? e.mvy : hero.y - e.y, e.fdir);
+        if (nf.src !== e.fdir.src) {
+          e.fdir = nf;
+          this.loadFrames(e);
+        } else e.fdir = nf;
+      }
+      e.sprite.texture = e.frames[Math.min(e.frame, e.frames.length - 1)];
       e.contactCd -= dt;
       e.attackCd -= dt;
       e.st += dt;
@@ -217,7 +244,7 @@ export class EnemySystem {
         }
       }
       const big = !!e.boss || !!e.def.elite;
-      const tint = e.boss && e.flashT > 0 ? 0xffd8c8 : e.burnT > 0 ? (big ? 0xffe0d0 : 0xffb08a) : e.slowT > 0 ? (big ? 0xe0f0ff : 0xa8d8ff) : 0xffffff;
+      const tint = e.flashT > 0 ? (e.boss ? 0xffc8b8 : 0xff8a7a) : e.burnT > 0 ? (big ? 0xffe0d0 : 0xffb08a) : e.slowT > 0 ? (big ? 0xe0f0ff : 0xa8d8ff) : 0xffffff;
       e.sprite.tint = tint;
       if (e.freezeT > 0) {
         e.freezeT -= dt;
@@ -235,7 +262,7 @@ export class EnemySystem {
       }
       if (e.state === 'spawn') {
         const k = Math.min(1, e.st / 0.4);
-        e.sprite.scale.set(e.scale * (0.6 + 0.4 * k) * e.facing, e.scale * k);
+        e.sprite.scale.set(e.scale * (0.6 + 0.4 * k) * (e.fdir.flip ? -1 : 1), e.scale * k);
         e.sprite.alpha = k;
         if (e.st >= 0.4) e.state = 'move';
         this.place(e);
@@ -301,7 +328,7 @@ export class EnemySystem {
         sx *= 1.03;
         sy *= 0.97;
       }
-      s.scale.set(sx * e.facing, sy);
+      s.scale.set(sx * (e.fdir.flip ? -1 : 1), sy);
     }
     if (e.def.fly) e.shadow.alpha = 0.3;
     if (e.bar && e.barFill) {

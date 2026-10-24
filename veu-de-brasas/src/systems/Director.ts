@@ -109,13 +109,14 @@ export class Director {
     e.slowMul = 1;
     e.hitCd.fill(-10);
     e.anim = '';
-    e.scale = kind === 'heart' ? 1.35 : 1.1;
+    e.scale = kind === 'heart' ? 1.2 : 1.15;
     e.facing = 1;
     e.noXp = false;
     e.isSummon = false;
     e.bossDrops = 0;
     w.enemies.setAnim(e, e.def.walkAnim, true, 5);
-    e.sprite.anchor.set(0.5, e.def.anchorY ?? 0.8);
+    e.sprite.anchor.set(...w.enemies.anchorFor(kind));
+    e.fdir = { src: 'S', flip: false };
     e.sprite.visible = true;
     e.sprite.alpha = 1;
     e.shadow.visible = true;
@@ -235,7 +236,7 @@ export class Director {
       const kind = this.endlessKind++ % 2 ? 'priestess' : 'guardian';
       const p = this.spawnPoint('around', 1) ?? this.safePoint(w.hero.x, w.hero.y - 220, 80);
       this.target = w.enemies.spawn(kind, p.x, p.y);
-      w.announce(kind === 'guardian' ? 'Um Guardião de Coral se aproxima!' : 'A Sacerdotisa de Vidro surge!');
+      w.announce(kind === 'guardian' ? 'Um Campeão Rubro se aproxima!' : 'A Lâmina Celeste surge!');
       w.sfx('sfx_roar', { volume: 0.6, rate: 1.2 });
     }
   }

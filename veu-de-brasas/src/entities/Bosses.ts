@@ -6,11 +6,11 @@ import { Src } from '../content/types';
 import { iso } from '../render/Iso';
 
 /**
- * Batráquio Colossal: salto telegrafado com onda de choque, leque de lava e fase enfurecida.
+ * Lâmina Carmesim (antes Batráquio Colossal): salto telegrafado com onda de choque, leque de lava e fase enfurecida.
  * Ciclo: idle → (salto | cuspe) ... Ao perder metade da vida, muda de fase com rugido.
  */
 export class ToadBoss implements BossController {
-  name = 'Batráquio Colossal';
+  name = 'Lâmina Carmesim';
   private phase = 1;
   private cycle = 0;
   private jumpsLeft = 0;
@@ -34,7 +34,7 @@ export class ToadBoss implements BossController {
       e.z = 0;
       w.sfx('sfx_roar', { volume: 0.9 });
       w.shake(6);
-      w.announce('O Batráquio se enfurece!');
+      w.announce('A Lâmina Carmesim se enfurece!');
       w.hazards.ring(e.x, e.y, 0.3, 260, 360, 26, 14, 0xff6030);
       for (let i = 0; i < 4; i++) w.director.spawnNear('frog', e.x, e.y, 140);
       this.anim(e, 'idle');
@@ -166,12 +166,12 @@ export class ToadBoss implements BossController {
 }
 
 /**
- * Coração do Véu: três fases curtas e legíveis.
+ * Arauto Peçonhento (antes Coração do Véu): três fases curtas e legíveis.
  * I — arcos de cristal em espiral com aberturas; II — raízes de coral telegrafadas que
  * fecham caminhos por instantes; III — pulsos expansivos com uma abertura segura sinalizada.
  */
 export class HeartBoss implements BossController {
-  name = 'Coração do Véu';
+  name = 'Arauto Peçonhento';
   phase = 0;
   private spin = 0;
   private patternT = 0;

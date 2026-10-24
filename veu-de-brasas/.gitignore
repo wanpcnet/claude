@@ -3,3 +3,7 @@ dist
 *.zip
 scripts/**/__pycache__
 .e2e-out
+# sprites de terceiros (SOV Digital): licença proíbe redistribuir os arquivos.
+# Os .zip ficam em assets-src/sov/ e `npm run assets:sov` gera public/assets/sov/ localmente.
+assets-src/
+public/assets/sov/

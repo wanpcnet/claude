@@ -241,7 +241,8 @@ export class WeaponsExtra {
         const ang = Math.atan2(t.y - h.y, t.x - h.x);
         h.aimX = Math.cos(ang);
         h.aimY = Math.sin(ang);
-        h.shootT = 0.24;
+        h.attackStart();
+        h.shootT = 0.3;
         this.healBudget = 3;
         this.whip(ang, reach, L.width * st.areaMul, L.damage);
         if (L.both) this.whip(ang + Math.PI, reach, L.width * st.areaMul, L.damage);

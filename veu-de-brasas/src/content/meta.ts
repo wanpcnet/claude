@@ -1,4 +1,5 @@
 import { emptyMeta, type MetaBonus } from './upgrades';
+import { PLAYABLE } from './heroes';
 
 /** Árvore de talentos permanente (comprada com Cinzas Eternas). */
 export interface TalentDef {
@@ -132,7 +133,7 @@ export function relicById(id: string): RelicDef {
 /** Desafio do dia: herói e dois modificadores determinísticos pela data. */
 export function dailyChallenge(date = new Date()): { key: string; hero: string; mods: DailyModId[] } {
   const { key, seed } = dailySeed(date);
-  const heroes = ['lysa', 'orin', 'brann', 'nyx'];
+  const heroes = PLAYABLE.map((h) => h.id) as string[];
   const ids = DAILY_MODS.map((m) => m.id);
   const a = seed % ids.length;
   let b = (seed >>> 8) % ids.length;

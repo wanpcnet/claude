@@ -3,10 +3,12 @@ import type { World } from '../world/World';
 import { clamp } from '../utils/math';
 import { iso } from '../render/Iso';
 import type { AtlasName } from '../game/AssetLoader';
+import { dir8, type Facing } from '../render/Dir8';
+import { heroById } from '../content/heroes';
 
 export type Dir = 'down' | 'up' | 'left' | 'right';
 
-/** Arqueira-rúnica: movimento com aceleração curta, esquiva com i-frames, animações em 4 direções. */
+/** Herói: movimento com aceleração curta, esquiva com i-frames, sprites pintados em 8 direções. */
 export class Hero {
   x = 0;
   y = 0;
@@ -16,6 +18,10 @@ export class Hero {
   hp = 100;
   energy = 60;
   dir: Dir = 'down';
+  facing: Facing = { src: 'S', flip: false };
+  private fps: Record<string, number> = {};
+  private baseScale = 1.3;
+  private attackAlt = false;
   aimX = 0;
   aimY = 1;
   alive = true;
@@ -47,11 +53,14 @@ export class Hero {
   private pre: string;
 
   constructor(private w: World) {
-    this.sheet = `hero_${w.build.hero}` as AtlasName;
-    this.pre = `hero_${w.build.hero}_`;
+    const hid = heroById(w.build.hero).id;
+    this.sheet = `hero_${hid}` as AtlasName;
+    this.pre = `hero_${hid}_`;
     this.dashCharges = w.stats.dashCharges;
     this.sprite = new Sprite(Texture.EMPTY);
-    this.sprite.anchor.set(0.5, 0.9);
+    const info = w.assets.sov.hero[hid] ?? w.assets.sov.hero.knight;
+    this.sprite.anchor.set(info.anchor[0], info.anchor[1]);
+    for (const [k, v] of Object.entries(info.anims)) this.fps[k] = v.fps;
     this.shadow = new Sprite(w.assets.tex('fx', 'shadow'));
     this.shadow.anchor.set(0.5);
     // sombra circular no plano do chão (a camada deitada aplica a projeção)
@@ -67,18 +76,26 @@ export class Hero {
     if (name === this.anim) return;
     this.anim = name;
     this.frames = this.w.assets.anim(this.sheet, this.pre + name);
-    this.animT = 0;
+  }
+
+  /** início de um golpe: alterna entre os dois movimentos de ataque */
+  attackStart(): void {
+    if (this.shootT <= 0) {
+      this.attackAlt = !this.attackAlt;
+      this.animT = 0;
+    }
   }
 
   update(dt: number): void {
     const w = this.w;
     if (!this.alive) {
       this.deathT += dt;
-      this.setAnim('death');
-      const f = Math.min(this.frames.length - 1, Math.floor(this.deathT * 6));
+      this.setAnim(`death_${this.facing.src}`);
+      const f = Math.min(this.frames.length - 1, Math.floor(this.deathT * (this.fps.death ?? 10)));
       this.sprite.texture = this.frames[f];
-      this.sprite.scale.set(1);
+      this.sprite.scale.set(this.facing.flip ? -this.baseScale : this.baseScale, this.baseScale);
       this.sprite.rotation = 0;
+      this.sprite.tint = 0xffffff;
       this.place();
       return;
     }
@@ -154,21 +171,26 @@ export class Hero {
     const fy = wy;
     if (Math.abs(fx) > Math.abs(fy) * 1.1) this.dir = fx > 0 ? 'right' : 'left';
     else if (fx || fy) this.dir = fy > 0 ? 'down' : 'up';
-    // animação
-    let a: string;
-    if (this.dashT > 0) a = `dash_${this.dir}`;
-    else if (this.hurtT > 0) a = `hurt_${this.dir}`;
-    else if (this.shootT > 0 && !moving) a = `shoot_${this.dir}`;
-    else if (moving) a = `walk_${this.dir}`;
-    else a = `idle_${this.dir}`;
-    this.setAnim(a);
+    this.facing = dir8(fx, fy, this.facing);
+    // animação (golpes alternam entre dois movimentos)
+    let base: string;
+    if (this.dashT > 0) base = 'dash';
+    else if (this.hurtT > 0) base = 'hurt';
+    else if (this.shootT > 0) base = this.attackAlt ? 'shoot2' : 'shoot';
+    else if (moving) base = 'walk';
+    else base = 'idle';
+    const before = this.anim;
+    this.setAnim(`${base}_${this.facing.src}`);
+    if (before !== this.anim && !before.startsWith(base)) this.animT = 0;
     this.animT += dt;
-    const fps = a.includes('walk') ? 10 * clamp(Math.hypot(this.vx, this.vy) / this.baseSpeed, 0.6, 1.4) : a.includes('shoot') ? 14 : a.includes('idle') ? 4 : 12;
+    let fps = this.fps[base] ?? 12;
+    if (base === 'walk') fps *= clamp(Math.hypot(this.vx, this.vy) / this.baseSpeed, 0.6, 1.3) * 0.75;
+    if (base === 'shoot' || base === 'shoot2') fps = Math.max(fps, (this.frames.length / 0.3));
     const fi = Math.floor(this.animT * fps);
-    const loop = !a.includes('shoot');
+    const loop = base === 'walk' || base === 'idle' || base === 'dash';
     this.sprite.texture = this.frames[loop ? fi % this.frames.length : Math.min(this.frames.length - 1, fi)];
-    // hit-flash breve e piscar discreto durante invulnerabilidade
-    if (this.hurtT > 0.18) this.sprite.texture = w.assets.tex(this.sheet, `${this.pre}flash_${this.dir}`);
+    // hit-flash: avermelha brevemente
+    this.sprite.tint = this.hurtT > 0.16 ? 0xff7a6a : 0xffffff;
     // fluidez: inclinação na direção do movimento, balanço do passo e compressão ao esquivar/aterrissar
     const svx = this.vx;
     const targetLean = this.dashT > 0 ? 0 : clamp(svx / 900, -0.09, 0.09);
@@ -177,8 +199,9 @@ export class Hero {
     this.bobT += dt * (moving ? 11 : 2.5);
     const bob = moving ? Math.abs(Math.sin(this.bobT)) * 0.045 : Math.sin(this.bobT) * 0.012;
     const sq = this.squash + bob;
-    this.sprite.rotation = this.lean;
-    this.sprite.scale.set(1 - sq * 0.6, 1 + sq);
+    this.sprite.rotation = this.lean * 0.5;
+    const sc = this.baseScale;
+    this.sprite.scale.set((this.facing.flip ? -1 : 1) * sc * (1 - sq * 0.4), sc * (1 + sq * 0.6));
     this.sprite.alpha = this.invuln > 0 && this.dashT <= 0 ? (Math.floor(this.invuln * 16) % 2 ? 0.55 : 1) : 1;
     // regeneração
     if (st.regen > 0) this.heal(st.regen * dt, false);

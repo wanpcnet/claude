@@ -378,7 +378,7 @@ export class World {
       if (e.armorHp <= 0) {
         this.fx.at(20).shatter(e.x, e.y, 18, true);
         this.sfx('sfx_armor_break', { volume: 0.9 });
-        this.announce('A armadura de coral se partiu!');
+        this.announce('A armadura do Campeão se partiu!');
         this.shake(5);
         this.hitstop(0.08);
         this.enemies.setAnim(e, 'guardian_broken', true, 8);
@@ -542,7 +542,7 @@ export class World {
       if (!e.boss) this.damageEnemy(e, { amount: 9999, type: 'arcane', source: Src.Pulse }, true);
     });
     this.game.audio.music('music_boss', 1.5);
-    this.game.hud.bossIntro(kind === 'toad' ? 'Batráquio Colossal' : 'Coração do Véu', kind === 'toad' ? 'Senhor do pântano mineral' : 'O núcleo vivo da fenda');
+    this.game.hud.bossIntro(kind === 'toad' ? 'Lâmina Carmesim' : 'Arauto Peçonhento', kind === 'toad' ? 'Assassino furioso do Véu' : 'O guardião da fenda');
     this.sfx('sfx_roar', { volume: 1 });
   }
 

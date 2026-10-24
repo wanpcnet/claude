@@ -99,10 +99,9 @@ export class Arena {
         const def = PROPS[id];
         if (!def) continue;
         const variant = (x * 7 + y * 13) % def.variants;
+        // o pivô (centro da base) vem de cada frame do atlas; sem espelhar, para a luz ficar coerente
         const s = new Sprite(assets.tex('props', `${id}_${variant}`));
-        s.anchor.set(0.5, id === 'rift' ? 0.5 : 0.92);
         s.position.set(iso.x(cx, cy), iso.y(cx, cy));
-        if ((x * 31 + y * 17) % 2 === 1 && id !== 'monument' && id !== 'altar' && id !== 'rift' && id !== 'copper_sigil') s.scale.x = -1;
         if (def.low) lowLayer.addChild(s);
         else {
           s.zIndex = iso.depth(cx, cy);

@@ -5,7 +5,9 @@ export type ActiveId = 'pulse' | 'nova' | 'slam' | 'swarm';
 export type UltId = 'solarRain' | 'arcaneStorm' | 'fury' | 'eclipse';
 
 export interface HeroDef {
-  id: 'lysa' | 'orin' | 'brann' | 'nyx';
+  id: 'knight' | 'lysa' | 'orin' | 'brann' | 'nyx';
+  /** há sprites para este herói? (os demais aguardam pacotes de arte) */
+  available: boolean;
   name: string;
   title: string;
   desc: string;
@@ -26,28 +28,35 @@ export interface HeroDef {
 
 export const HEROES: HeroDef[] = [
   {
-    id: 'lysa', name: 'Lysa', title: 'Arqueira-Rúnica',
+    id: 'knight', name: 'Aldric', title: 'Cavaleiro do Véu', available: true,
+    desc: 'Veterano de armadura completa. Corta tudo à frente com a espada e aguenta a linha de frente.',
+    start: ['whip', 'crown'], active: 'slam', activeName: 'Impacto Sísmico', activeDesc: 'Salta e esmaga o chão, atordoando e empurrando tudo ao redor.',
+    activeCost: 50, activeCd: 3.5, ult: 'fury', ultName: 'Fúria do Juramento', ultDesc: '6 s de dano +60%, velocidade +25% e roubo de vida.',
+    mods: { hp: 25, armor: 1 }, cost: 0, rating: { ataque: 4, defesa: 4, mobilidade: 3, controle: 3 },
+  },
+  {
+    available: false, id: 'lysa', name: 'Lysa', title: 'Arqueira-Rúnica',
     desc: 'Guardiã das Âncoras. Equilibrada, ataca à distância e incendeia quem se aproxima.',
     start: ['arrow', 'crown'], active: 'pulse', activeName: 'Pulso da Coroa', activeDesc: 'A coroa se expande, empurra e incendeia a horda.',
     activeCost: 55, activeCd: 3.2, ult: 'solarRain', ultName: 'Alvorada Solar', ultDesc: 'Lanças solares caem por toda a tela durante 3 s.',
     mods: {}, cost: 0, rating: { ataque: 3, defesa: 3, mobilidade: 3, controle: 3 },
   },
   {
-    id: 'orin', name: 'Orin', title: 'Mago do Véu',
+    available: false, id: 'orin', name: 'Orin', title: 'Mago do Véu',
     desc: 'Mestre arcano frágil, mas devastador. Habilidades recarregam mais rápido.',
     start: ['missile', 'frost'], active: 'nova', activeName: 'Congelamento', activeDesc: 'Congela todos os inimigos próximos por 2 s e causa dano.',
     activeCost: 60, activeCd: 4, ult: 'arcaneStorm', ultName: 'Tempestade Arcana', ultDesc: 'Raios atingem inimigos aleatórios durante 4 s.',
     mods: { hp: -15, cooldown: 0.9, area: 1.1 }, cost: 120, rating: { ataque: 5, defesa: 1, mobilidade: 3, controle: 4 },
   },
   {
-    id: 'brann', name: 'Brann', title: 'Guardiã de Bronze',
+    available: false, id: 'brann', name: 'Brann', title: 'Guardiã de Bronze',
     desc: 'Guerreira blindada de combate corpo a corpo. Muita vida e armadura.',
     start: ['whip', 'thorns'], active: 'slam', activeName: 'Impacto Sísmico', activeDesc: 'Salta e esmaga o chão, atordoando e empurrando tudo ao redor.',
     activeCost: 50, activeCd: 3.5, ult: 'fury', ultName: 'Fúria de Bronze', ultDesc: '6 s de dano +60%, velocidade +25% e roubo de vida.',
     mods: { hp: 45, armor: 2, speed: 0.95 }, cost: 150, rating: { ataque: 4, defesa: 5, mobilidade: 2, controle: 3 },
   },
   {
-    id: 'nyx', name: 'Nyx', title: 'Invocadora Velada',
+    available: false, id: 'nyx', name: 'Nyx', title: 'Invocadora Velada',
     desc: 'Comanda espíritos e o vazio. Invocações duram mais e coleta itens de longe.',
     start: ['wisp', 'void'], active: 'swarm', activeName: 'Revoada Sombria', activeDesc: 'Invoca 8 fogos-fátuos sombrios por 8 s.',
     activeCost: 55, activeCd: 4, ult: 'eclipse', ultName: 'Eclipse', ultDesc: 'Um vazio colossal suga a tela e detona.',
@@ -56,5 +65,7 @@ export const HEROES: HeroDef[] = [
 ];
 
 export function heroById(id: string): HeroDef {
-  return HEROES.find((h) => h.id === id) ?? HEROES[0];
+  return HEROES.find((h) => h.id === id && h.available) ?? HEROES[0];
 }
+
+export const PLAYABLE = HEROES.filter((h) => h.available);

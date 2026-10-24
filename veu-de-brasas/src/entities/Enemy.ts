@@ -1,6 +1,7 @@
 import { Container, Sprite, Texture } from 'pixi.js';
 import type { EnemyDef } from '../content/types';
 import { Src } from '../content/types';
+import type { Facing } from '../render/Dir8';
 
 export type EState = 'spawn' | 'move' | 'windup' | 'attack' | 'recover' | 'air' | 'dead';
 
@@ -33,6 +34,8 @@ export class Enemy {
   st = 0;
   t = 0;
   facing = 1;
+  /** direção do sprite pintado (8 direções) */
+  fdir: Facing = { src: 'S', flip: false };
   flashT = 0;
   flashCd = 0;
   burnT = 0;

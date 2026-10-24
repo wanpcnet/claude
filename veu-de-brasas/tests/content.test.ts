@@ -81,16 +81,21 @@ describe('Roteiro dos atos', () => {
 describe('Assets existem no repositório', () => {
   it('atlas, áudio, fontes e solo', () => {
     const base = 'public/assets/';
-    const atlases = ['characters/hero_lysa', 'characters/hero_orin', 'characters/hero_brann', 'characters/hero_nyx', 'enemies/enemies', 'enemies/bosses', 'effects/fx', 'environment/props', 'ui/icons'];
-    for (const a of atlases) {
-      expect(existsSync(base + a + '.png'), a).toBe(true);
+    // atlas versionados no Git (os sprites SOV ficam fora por licença: ver checagem abaixo)
+    for (const [a, ext] of [['effects/fx', 'png'], ['environment/props', 'webp'], ['ui/icons', 'png']]) {
+      expect(existsSync(`${base}${a}.${ext}`), a).toBe(true);
       const j = JSON.parse(readFileSync(base + a + '.json', 'utf8'));
       expect(Object.keys(j.frames).length).toBeGreaterThan(5);
     }
-    const enemies = JSON.parse(readFileSync(base + 'enemies/enemies.json', 'utf8'));
-    for (const e of Object.values(ENEMIES)) {
-      expect(enemies.animations[e.walkAnim], e.walkAnim).toBeTruthy();
-      expect(enemies.animations[e.anim + '_death'], e.anim).toBeTruthy();
+    // sprites SOV: só existem depois de `npm run assets:sov` (pacotes baixados localmente)
+    if (existsSync(base + 'sov/manifest.json')) {
+      const man = JSON.parse(readFileSync(base + 'sov/manifest.json', 'utf8'));
+      const enemies = JSON.parse(readFileSync(base + 'sov/enemies.json', 'utf8'));
+      for (const e of Object.values(ENEMIES)) {
+        expect(man.enemies[e.anim], e.anim).toBeTruthy();
+        expect(enemies.animations[`${e.walkAnim}_S`], e.walkAnim).toBeTruthy();
+        expect(enemies.animations[`${e.anim}_death_S`], e.anim).toBeTruthy();
+      }
     }
     const props = JSON.parse(readFileSync(base + 'environment/props.json', 'utf8'));
     for (const [id, def] of Object.entries(PROPS)) for (let v = 0; v < def.variants; v++) expect(props.frames[`${id}_${v}`], id).toBeTruthy();

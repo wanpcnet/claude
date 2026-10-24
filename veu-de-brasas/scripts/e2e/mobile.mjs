@@ -26,8 +26,8 @@ const touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touch
 const shot = (n) => page.screenshot({ path: `${OUT}/m-${ORI}-${n}.png` });
 const sleep = (ms) => page.waitForTimeout(ms);
 const tapText = async (t) => {
-  const loc = page.locator(`text=${t}`).first();
-  await loc.scrollIntoViewIfNeeded();
+  const loc = page.locator(`text=${t} >> visible=true`).first();
+  await loc.waitFor({ state: 'visible', timeout: 10000 });
   const b = await loc.boundingBox();
   await page.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2);
 };
@@ -101,3 +101,4 @@ try {
 console.log('errors', JSON.stringify(errors));
 await browser.close();
 server.kill();
+process.exit(errors.length ? 1 : 0);

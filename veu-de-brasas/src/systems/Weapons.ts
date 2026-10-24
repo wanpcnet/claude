@@ -167,7 +167,8 @@ export class Weapons {
         }
         h.aimX = Math.cos(ang);
         h.aimY = Math.sin(ang);
-        h.shootT = 0.22;
+        h.attackStart();
+        h.shootT = 0.3;
         w.sfx('sfx_arrow', { volume: 0.35, gap: 0.05 });
         return true;
       }

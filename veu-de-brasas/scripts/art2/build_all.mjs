@@ -1,6 +1,6 @@
 // Pipeline de arte v2 (vetorial): gera todos os atlas, ícones, retratos, emblema, ilustração do
 // menu, cursor e a fonte dos números de dano. Uso: node scripts/art2/build_all.mjs [parte...]
-// O solo das arenas é gerado à parte por scripts/art2/ground2d.py (Python).
+// O solo e os props do cenário vêm de scripts/assets/ground_cc0.py e props_cc0.mjs (texturas/modelos CC0).
 import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -35,7 +35,8 @@ if (on('bosses')) {
   const b = bossSprites();
   log('bosses', await atlas(join(OUT, 'enemies', 'bosses'), 'bosses.png', b.sprites, b.animations, 4096));
 }
-if (on('props')) {
+// props vetoriais antigos: substituídos por scripts/assets/props_cc0.mjs (só rodam se pedidos explicitamente)
+if (want.has('props-vector')) {
   const p = propSprites();
   log('props', await atlas(join(OUT, 'environment', 'props'), 'props.png', p.sprites, p.animations, 2048));
 }

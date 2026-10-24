@@ -5,12 +5,10 @@ import { AudioManager, SFX_LIST } from './AudioManager';
 export const BASE = new URL(import.meta.env.BASE_URL + 'assets/', location.href).href;
 
 const ATLASES = {
-  hero_lysa: 'characters/hero_lysa.json',
-  hero_orin: 'characters/hero_orin.json',
-  hero_brann: 'characters/hero_brann.json',
-  hero_nyx: 'characters/hero_nyx.json',
-  enemies: 'enemies/enemies.json',
-  bosses: 'enemies/bosses.json',
+  hero_knight: 'sov/hero_knight.json',
+  enemies: 'sov/enemies.json',
+  bosses: 'sov/bosses.json',
+  sovfx: 'sov/sovfx.json',
   fx: 'effects/fx.json',
   props: 'environment/props.json',
   icons: 'ui/icons.json',
@@ -18,15 +16,43 @@ const ATLASES = {
 
 export type AtlasName = keyof typeof ATLASES;
 
+/** metadados dos sprites pintados (gerado por scripts/assets/build_sov.py) */
+export interface SovChar {
+  anchor: [number, number];
+  size: [number, number];
+  anims: Record<string, { frames: number; fps: number }>;
+}
+export interface SovFx {
+  anchor: [number, number];
+  frames: number;
+  fps: number;
+  hit: number;
+  size: [number, number];
+}
+export interface SovManifest {
+  hero: Record<string, SovChar>;
+  enemies: Record<string, SovChar>;
+  bosses: Record<string, SovChar>;
+  fx: Record<string, SovFx>;
+}
+
 /** Carregador central: resolve caminhos, informa progresso e registra falhas de assets. */
 export class AssetLoader {
   sheets = {} as Record<AtlasName, Spritesheet>;
   ground: Record<string, { width: number; height: number; chunks: { file: string; x: number; y: number; w: number; h: number }[] }> = {};
   keyart: Texture = Texture.EMPTY;
   failures: string[] = [];
+  sov: SovManifest = { hero: {}, enemies: {}, bosses: {}, fx: {} };
 
   async load(audio: AudioManager, onProgress: (p: number, label: string) => void): Promise<void> {
     TextureStyle.defaultOptions.scaleMode = 'linear';
+    try {
+      const r = await fetch(BASE + 'sov/manifest.json');
+      if (!r.ok) throw new Error(String(r.status));
+      this.sov = await r.json();
+    } catch (e) {
+      this.fail('sov/manifest.json (rode npm run assets:sov)', e);
+    }
     const names = Object.keys(ATLASES) as AtlasName[];
     let step = 0;
     const total = names.length + 5;

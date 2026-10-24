@@ -82,8 +82,8 @@ export function defaultSave(): SaveData {
     victories: 0,
     runs: 0,
     checkpoint: null,
-    heroes: ['lysa'],
-    selectedHero: 'lysa',
+    heroes: ['knight'],
+    selectedHero: 'knight',
     talents: {},
     relics: ['r_none'],
     selectedRelic: 'r_none',
@@ -143,7 +143,7 @@ export function migrate(raw: unknown): SaveData {
     out.checkpoint = {
       ...cp,
       build: {
-        hero: typeof cp.build.hero === 'string' ? cp.build.hero : 'lysa',
+        hero: typeof cp.build.hero === 'string' ? cp.build.hero : 'knight',
         weapons: { ...cp.build.weapons },
         passives: { ...(cp.build.passives ?? {}) },
         flags: { ...(cp.build.flags ?? {}) },

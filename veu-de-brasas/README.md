@@ -1,14 +1,14 @@
 # Véu de Brasas
 
-Ação **2D em visão de cima** de sobrevivência arcana com hordas (survivor-like), fantasia sombria
-bioluminescente, com **arte vetorial em estilo cartoon moderno** (contorno, sombreado em camadas e brilho). Quatro guardiões jogáveis, uma coroa em chamas e uma maré
-viva de criaturas cristalinas: reacenda as três Âncoras do Véu e destrua o Coração do Véu.
+Ação **2D em visão de cima** de sobrevivência arcana com hordas (survivor-like), fantasia sombria.
+Personagens e efeitos em **sprites HD 2.5D de 8 direções (SovDigital)**, sobre cenário com
+texturas fotográficas e props 3D CC0. Reacenda as três Âncoras do Véu e destrua o chefe final.
 
 - **Renderização:** PixiJS 8 + WebGL (sem Canvas 2D no código do jogo), TypeScript estrito, Vite.
-- **Arte, mapas e áudio originais**, gerados por uma pipeline offline incluída em `scripts/`
-  (veja [ASSET_CREDITS.md](ASSET_CREDITS.md)).
-- **4 heróis jogáveis** (Lysa, Orin, Brann, Nyx), cada um com armas iniciais, habilidade
-  ativa (Q) e **Suprema** (R) próprias.
+- **Arte:** personagens SovDigital (fora do Git por licença — veja como gerar em
+  [ASSET_CREDITS.md](ASSET_CREDITS.md)), cenário CC0 (Poly Haven), interface, mapas e áudio originais.
+- **Herói jogável:** Aldric, Cavaleiro do Véu, com habilidade ativa (Q) e **Suprema** (R)
+  (outros 3 heróis voltam quando houver sprites no mesmo estilo).
 - **18 armas**, 20 passivas, **10 evoluções** e **7 combos** (até 6 armas + 6 passivas por partida).
 - **3 modos:** Campanha de 3 atos (~12–18 min), **Sem Fim** (recorde de sobrevivência) e
   **Desafio Diário** (herói e modificadores sorteados pela data).
@@ -21,8 +21,8 @@ viva de criaturas cristalinas: reacenda as três Âncoras do Véu e destrua o Co
 - Node.js 18+ (testado com Node 22) e npm.
 - Navegador moderno com WebGL (Chrome, Edge, Firefox, Safari).
 - Playwright/Chromium (sprites) e Python 3 + numpy + Pillow (solo) + ffmpeg (áudio) **apenas** se quiser
-  regenerar a arte/áudio. Os assets
-  prontos já estão em `public/assets/`.
+  regenerar a arte/áudio. Os sprites SOV precisam ser gerados uma vez com `npm run assets:sov`
+  (veja [ASSET_CREDITS.md](ASSET_CREDITS.md)); o resto já está em `public/assets/`.
 
 ## Comandos
 
@@ -175,7 +175,7 @@ metas.
 |---|---|
 | `npm install` | ok, sem configuração secreta |
 | `npm run build` (tsc estrito + Vite) | ok, sem erros |
-| `npm test` (Vitest, 18 testes) | 18/18 passando — grade espacial, pools, cartas (nunca maximizadas/duplicadas, combos condicionais, efeito real de cada carta), armas, migração de save, layouts dos mapas (alcance por BFS a partir do início, caracteres válidos), roteiro dos atos, existência de todos os assets referenciados |
+| `npm test` (Vitest, 24 testes) | 24/24 passando — grade espacial, pools, cartas (nunca maximizadas/duplicadas, combos condicionais, efeito real de cada carta), armas, migração de save, layouts dos mapas (alcance por BFS a partir do início, caracteres válidos), roteiro dos atos, existência de todos os assets referenciados |
 | `scripts/e2e/smoke.mjs` | menu → nova jornada → movimento, esquiva, pulso → 350 inimigos → cartas → pausa/retomar → áudio (33 buffers decodificados) → gamepad simulado → qualidades Baixa/Média/Alta; **0 erros de console, 0 requisições falhas** (1280×720 e 432×860 retrato) |
 | `scripts/e2e/campaign.mjs` | três atos com objetivos acelerados: Âncoras, Guardião, Sacerdotisa, Batráquio, transições de ato; 0 erros |
 | `scripts/e2e/bosses.mjs` | Batráquio (salto, onda de choque, leque de lava, fase enfurecida) e Coração do Véu (três fases) até a tela de vitória; 0 erros |

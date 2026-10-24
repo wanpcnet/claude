@@ -42,7 +42,7 @@ export const ACTS: ActScript[] = [
     stages: [
       { type: 'kills', goal: 160, text: 'Dissipe a maré para despertar a Âncora' },
       { type: 'anchor', channel: 18, text: 'Reacenda a Âncora: permaneça no círculo' },
-      { type: 'elite', enemy: 'guardian', at: 'A', text: 'Derrote o Guardião de Coral' },
+      { type: 'elite', enemy: 'guardian', at: 'A', text: 'Derrote o Campeão Rubro' },
     ],
     ambient: [
       { from: 0, target: 14, rate: 2.2, mix: { rust: 1 } },
@@ -77,9 +77,9 @@ export const ACTS: ActScript[] = [
     subtitle: 'O vidro canta onde a fenda respira',
     stages: [
       { type: 'kills', goal: 260, text: 'Abra caminho pelo Bosque de Vidro' },
-      { type: 'elite', enemy: 'priestess', at: 'E', text: 'A Sacerdotisa de Vidro guarda a praça' },
+      { type: 'elite', enemy: 'priestess', at: 'E', text: 'A Lâmina Celeste guarda a praça' },
       { type: 'anchor', channel: 22, text: 'Reacenda a segunda Âncora atrás das formações' },
-      { type: 'boss', boss: 'toad', at: 'E', text: 'O Batráquio Colossal desperta!' },
+      { type: 'boss', boss: 'toad', at: 'E', text: 'A Lâmina Carmesim desperta!' },
     ],
     ambient: [
       { from: 0, target: 50, rate: 6, mix: { rust: 4, spider: 2, wasp: 2 } },
@@ -101,16 +101,16 @@ export const ACTS: ActScript[] = [
       { t: 300, enemy: 'shell', count: 8, side: 'north', formation: 'arc' },
       { t: 340, enemy: 'rust', count: 90, side: 'around', formation: 'ring' },
     ],
-    hints: [{ t: 3, text: 'Vespas de Vidro mergulham em linha reta — observe o aviso no solo' }],
+    hints: [{ t: 3, text: 'Lobos da Geada avançam em linha reta — observe o aviso no solo' }],
   },
   {
     map: 'arenaC',
     title: 'Ato III — Santuário Submerso',
-    subtitle: 'O Coração do Véu pulsa além do altar',
+    subtitle: 'O Arauto Peçonhento aguarda além do altar',
     stages: [
       { type: 'kills', goal: 320, text: 'Atravesse o Santuário Submerso' },
       { type: 'anchor', channel: 26, text: 'Reacenda a terceira Âncora no Altar de Cobre' },
-      { type: 'boss', boss: 'heart', at: 'B', text: 'Enfrente o Coração do Véu na fenda' },
+      { type: 'boss', boss: 'heart', at: 'B', text: 'Enfrente o Arauto Peçonhento na fenda' },
     ],
     ambient: [
       { from: 0, target: 90, rate: 9, mix: { rust: 5, spider: 3, ghost: 2, frog: 1, slime: 1 } },

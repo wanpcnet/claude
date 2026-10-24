@@ -5,9 +5,9 @@ import { Rng } from '../src/utils/rng';
 import { CARDS, newBuild, rollCards, deriveStats, xpForLevel } from '../src/content/upgrades';
 import { WEAPONS, WEAPON_ORDER } from '../src/content/weapons';
 import { migrate, defaultSave, SAVE_VERSION } from '../src/systems/Save';
-import { HEROES } from '../src/content/heroes';
+import { PLAYABLE } from '../src/content/heroes';
 import { TALENTS, RELICS, computeMeta, dailyChallenge, DAILY_MODS } from '../src/content/meta';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 
 describe('SpatialHash', () => {
   it('encontra apenas itens nas células próximas', () => {
@@ -126,31 +126,28 @@ describe('Save', () => {
 });
 
 describe('Heróis e progressão', () => {
-  it('cada herói começa com duas armas válidas e tem sprites próprios', () => {
-    expect(HEROES.length).toBe(4);
-    for (const h of HEROES) {
+  it('cada herói jogável começa com duas armas válidas e tem sprites próprios', () => {
+    expect(PLAYABLE.length).toBeGreaterThan(0);
+    const man = existsSync('public/assets/sov/manifest.json') ? JSON.parse(readFileSync('public/assets/sov/manifest.json', 'utf8')) : null;
+    for (const h of PLAYABLE) {
       const b = newBuild(h.id);
       expect(Object.keys(b.weapons).sort()).toEqual([...h.start].sort());
       for (const w of h.start) expect(WEAPONS[w]).toBeTruthy();
-      const j = JSON.parse(readFileSync(`public/assets/characters/hero_${h.id}.json`, 'utf8'));
-      for (const d of ['down', 'up', 'left', 'right']) for (const a of ['idle', 'walk', 'shoot', 'dash', 'hurt']) expect(j.animations[`hero_${h.id}_${a}_${d}`], `${h.id} ${a} ${d}`).toBeTruthy();
-      expect(j.animations[`hero_${h.id}_death`]).toBeTruthy();
-      expect(j.meta.scale).toBe('2');
+      if (man) for (const a of ['idle', 'walk', 'shoot', 'dash', 'hurt', 'death']) expect(man.hero[h.id].anims[a], `${h.id} ${a}`).toBeTruthy();
     }
   });
   it('modificadores do herói alteram atributos', () => {
-    const brann = deriveStats(newBuild('brann'));
-    const orin = deriveStats(newBuild('orin'));
-    expect(brann.maxHp).toBeGreaterThan(orin.maxHp);
-    expect(orin.cooldownMul).toBeLessThan(brann.cooldownMul);
+    const knight = deriveStats(newBuild('knight'));
+    expect(knight.maxHp).toBe(125);
+    expect(knight.armor).toBeGreaterThanOrEqual(1);
   });
   it('talentos e relíquias somam bônus permanentes', () => {
     const m = computeMeta({ might: 3, vigor: 2, crit: 1 }, 'r_eye');
     expect(m.might).toBeCloseTo(0.12);
     expect(m.hp).toBe(20);
     expect(m.crit).toBeCloseTo(0.15);
-    const st = deriveStats(newBuild('lysa', m));
-    expect(st.maxHp).toBe(120);
+    const st = deriveStats(newBuild('knight', m));
+    expect(st.maxHp).toBe(145);
     expect(st.might).toBeCloseTo(1.12);
     for (const t of TALENTS) if (t.requires) expect(TALENTS.find((x) => x.id === t.requires), t.id).toBeTruthy();
     expect(RELICS[0].cost).toBe(0);
@@ -176,7 +173,7 @@ describe('Heróis e progressão', () => {
 describe('Save v3', () => {
   it('migra campos novos com segurança', () => {
     const m = migrate({ version: 2, ashes: 50, heroes: ['orin', 7], selectedHero: 'orin', talents: { might: 2, bad: 'x' }, difficulty: 'torment', checkpoint: { act: 1, build: { weapons: { arrow: 1 } } } });
-    expect(m.heroes).toEqual(['lysa', 'orin']);
+    expect(m.heroes).toEqual(['knight', 'orin']);
     expect(m.selectedHero).toBe('orin');
     expect(m.talents).toEqual({ might: 2 });
     expect(m.difficulty).toBe('normal');
