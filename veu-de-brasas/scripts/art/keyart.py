@@ -3,14 +3,15 @@ sobre o solo do Jardim das Cinzas, com luz da Coroa e olhos da horda na escurid�
 import math
 import numpy as np
 from PIL import Image
-from pixel import Canvas, PAL, hexc
+from pixel import Canvas, PAL, hexc, SC
 import hero, enemies, props, fx
 
 
 def build(ground_img: Image.Image, out_path: str):
     Wd, Hd = 480, 270
     # recorte do solo ao redor do monumento central
-    g = ground_img.crop((1152 - 240, 832 - 60, 1152 + 240, 832 + 210)).convert('RGBA')
+    cx0, cy0 = ground_img.width // 2, ground_img.height // 2
+    g = ground_img.crop((cx0 - 240, cy0 - 135, cx0 + 240, cy0 + 135)).convert('RGBA').resize((480 * SC, 270 * SC), Image.NEAREST)
     base = np.array(g).astype(np.float32) / 255
     # escurece para atmosfera
     base[:, :, :3] *= 0.75
@@ -42,7 +43,7 @@ def build(ground_img: Image.Image, out_path: str):
         im = [beetle, spider, beetle, frog][i % 4]
         if x > 240:
             im = im.transpose(Image.FLIP_LEFT_RIGHT)
-        c.paste(Canvas_from(im), int(x - im.width / 2), int(y - im.height / 2), 0.9)
+        c.paste(Canvas_from(im), int(x - im.width / 2 / SC), int(y - im.height / 2 / SC), 0.9)
     # escuridão periférica
     d = np.sqrt(((c.xs - 240) / 240) ** 2 + ((c.ys - 180) / 160) ** 2)
     dark = np.clip((d - 0.35) / 0.8, 0, 1) ** 1.3
@@ -51,7 +52,7 @@ def build(ground_img: Image.Image, out_path: str):
     c.glow(240, 186, 90, PAL['lava'][3], 0.55)
     ring = fx.crown_ring(96).image()
     c.paste(Canvas_from(ring), 240 - 48, 186 - 48 + 6, 0.95)
-    h = hero.up(0.0, 'idle').image().resize((96, 96), Image.NEAREST)
+    h = hero.up(0.0, 'idle').image().resize((96 * SC, 96 * SC), Image.NEAREST)
     c.paste(Canvas_from(h), 240 - 48, 186 - 72)
     for i in range(8):
         a = i / 8 * math.tau + 0.3
@@ -72,6 +73,4 @@ def build(ground_img: Image.Image, out_path: str):
 
 
 def Canvas_from(im: Image.Image):
-    c = Canvas(im.width, im.height)
-    c.px = np.array(im.convert('RGBA')).astype(np.float32) / 255
-    return c
+    return Canvas.from_image(im)

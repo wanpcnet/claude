@@ -2,6 +2,7 @@ import { Sprite, Texture } from 'pixi.js';
 import type { World } from '../world/World';
 import { clamp } from '../utils/math';
 import { iso } from '../render/Iso';
+import type { AtlasName } from '../game/AssetLoader';
 
 export type Dir = 'down' | 'up' | 'left' | 'right';
 
@@ -22,6 +23,10 @@ export class Hero {
   hurtT = 0;
   dashT = 0;
   dashCd = 0;
+  dashCharges = 1;
+  private lean = 0;
+  private squash = 0;
+  private bobT = 0;
   dashX = 0;
   dashY = 0;
   shootT = 0;
@@ -38,7 +43,13 @@ export class Hero {
   readonly dashTime = 0.17;
   readonly dashCooldown = 1.25;
 
+  readonly sheet: AtlasName;
+  private pre: string;
+
   constructor(private w: World) {
+    this.sheet = `hero_${w.build.hero}` as AtlasName;
+    this.pre = `hero_${w.build.hero}_`;
+    this.dashCharges = w.stats.dashCharges;
     this.sprite = new Sprite(Texture.EMPTY);
     this.sprite.anchor.set(0.5, 0.9);
     this.shadow = new Sprite(w.assets.tex('fx', 'shadow'));
@@ -55,7 +66,7 @@ export class Hero {
   private setAnim(name: string): void {
     if (name === this.anim) return;
     this.anim = name;
-    this.frames = this.w.assets.anim('hero', name);
+    this.frames = this.w.assets.anim(this.sheet, this.pre + name);
     this.animT = 0;
   }
 
@@ -63,15 +74,25 @@ export class Hero {
     const w = this.w;
     if (!this.alive) {
       this.deathT += dt;
-      this.setAnim('hero_death');
+      this.setAnim('death');
       const f = Math.min(this.frames.length - 1, Math.floor(this.deathT * 6));
       this.sprite.texture = this.frames[f];
+      this.sprite.scale.set(1);
+      this.sprite.rotation = 0;
       this.place();
       return;
     }
     this.invuln -= dt;
     this.hurtT -= dt;
-    this.dashCd -= dt;
+    // cargas de esquiva recarregam uma por vez
+    const maxCh = w.stats.dashCharges;
+    if (this.dashCharges < maxCh) {
+      this.dashCd -= dt;
+      if (this.dashCd <= 0) {
+        this.dashCharges++;
+        this.dashCd = this.dashCharges < maxCh ? this.dashCooldown * w.stats.dashCdMul : 0;
+      }
+    } else this.dashCd = 0;
     this.shootT -= dt;
     const input = w.game.input;
     // a entrada é em direções da tela; converte para o plano do mundo isométrico
@@ -80,7 +101,7 @@ export class Hero {
     const wd = iso.screenDirToWorld(raw.x, raw.y);
     const mv = { x: wd.x * mag, y: wd.y * mag };
     const st = w.stats;
-    if (!w.controlsLocked && input.consume('dash') && this.dashCd <= 0 && this.dashT <= 0) {
+    if (!w.controlsLocked && input.consume('dash') && this.dashCharges > 0 && this.dashT <= 0) {
       let dx = mv.x;
       let dy = mv.y;
       if (!dx && !dy) {
@@ -91,7 +112,9 @@ export class Hero {
       this.dashX = dx / l;
       this.dashY = dy / l;
       this.dashT = this.dashTime;
-      this.dashCd = this.dashCooldown * st.dashCdMul;
+      if (this.dashCharges === maxCh) this.dashCd = this.dashCooldown * st.dashCdMul;
+      this.dashCharges--;
+      this.squash = -0.25;
       this.invuln = Math.max(this.invuln, 0.26);
       w.sfx('sfx_dash', { volume: 0.7 });
       w.fx.dust(this.x, this.y, 5);
@@ -106,7 +129,7 @@ export class Hero {
         w.fx.at(26).dashTrail(this.x, this.y, this.sprite.texture, 1);
       }
     } else {
-      const sp = this.baseSpeed * st.speedMul;
+      const sp = this.baseSpeed * st.speedMul * w.abilities.speedMul;
       const tx = mv.x * sp;
       const ty = mv.y * sp;
       const acc = mv.x || mv.y ? 18 : 22;
@@ -133,11 +156,11 @@ export class Hero {
     else if (fx || fy) this.dir = fy > 0 ? 'down' : 'up';
     // animação
     let a: string;
-    if (this.dashT > 0) a = `hero_dash_${this.dir}`;
-    else if (this.hurtT > 0) a = `hero_hurt_${this.dir}`;
-    else if (this.shootT > 0 && !moving) a = `hero_shoot_${this.dir}`;
-    else if (moving) a = `hero_walk_${this.dir}`;
-    else a = `hero_idle_${this.dir}`;
+    if (this.dashT > 0) a = `dash_${this.dir}`;
+    else if (this.hurtT > 0) a = `hurt_${this.dir}`;
+    else if (this.shootT > 0 && !moving) a = `shoot_${this.dir}`;
+    else if (moving) a = `walk_${this.dir}`;
+    else a = `idle_${this.dir}`;
     this.setAnim(a);
     this.animT += dt;
     const fps = a.includes('walk') ? 10 * clamp(Math.hypot(this.vx, this.vy) / this.baseSpeed, 0.6, 1.4) : a.includes('shoot') ? 14 : a.includes('idle') ? 4 : 12;
@@ -145,7 +168,17 @@ export class Hero {
     const loop = !a.includes('shoot');
     this.sprite.texture = this.frames[loop ? fi % this.frames.length : Math.min(this.frames.length - 1, fi)];
     // hit-flash breve e piscar discreto durante invulnerabilidade
-    if (this.hurtT > 0.18) this.sprite.texture = w.assets.tex('hero', `hero_flash_${this.dir}`);
+    if (this.hurtT > 0.18) this.sprite.texture = w.assets.tex(this.sheet, `${this.pre}flash_${this.dir}`);
+    // fluidez: inclinação na direção do movimento, balanço do passo e compressão ao esquivar/aterrissar
+    const svx = this.vx - this.vy;
+    const targetLean = this.dashT > 0 ? 0 : clamp(svx / 900, -0.09, 0.09);
+    this.lean += (targetLean - this.lean) * Math.min(1, dt * 12);
+    this.squash += (0 - this.squash) * Math.min(1, dt * 10);
+    this.bobT += dt * (moving ? 11 : 2.5);
+    const bob = moving ? Math.abs(Math.sin(this.bobT)) * 0.045 : Math.sin(this.bobT) * 0.012;
+    const sq = this.squash + bob;
+    this.sprite.rotation = this.lean;
+    this.sprite.scale.set(1 - sq * 0.6, 1 + sq);
     this.sprite.alpha = this.invuln > 0 && this.dashT <= 0 ? (Math.floor(this.invuln * 16) % 2 ? 0.55 : 1) : 1;
     // regeneração
     if (st.regen > 0) this.heal(st.regen * dt, false);
@@ -187,6 +220,7 @@ export class Hero {
       this.alive = false;
       this.deathT = 0;
     }
+    this.squash = -0.15;
     return true;
   }
 }

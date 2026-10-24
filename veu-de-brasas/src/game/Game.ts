@@ -6,7 +6,10 @@ import { SaveStore, META_ITEMS, type Quality } from '../systems/Save';
 import { Hud } from '../ui/Hud';
 import { Menus } from '../ui/Menus';
 import { World, type RunState } from '../world/World';
-import { ACTS } from '../content/acts';
+import { ACTS, ENDLESS_ACT } from '../content/acts';
+import { heroById } from '../content/heroes';
+import { TALENTS, DIFFICULTIES, computeMeta, dailyChallenge, difficultyById, relicById, type ModeId, type RunConfig } from '../content/meta';
+import { WEAPON_ORDER } from '../content/weapons';
 import { newBuild, rollCards, type CardDef } from '../content/upgrades';
 import { Particles } from '../render/Particles';
 import { rng } from '../utils/rng';
@@ -32,7 +35,6 @@ export class Game {
   private actIndex = 0;
   private cards: CardDef[] = [];
   private cardBonus = false;
-  private accumulator = 0;
   private debugOn = false;
   private fpsSmooth = 60;
   private updateMs = 0;
@@ -157,16 +159,91 @@ export class Game {
   }
 
   // ------------------------------------------------------------ partidas
-  newRun(): void {
-    const build = newBuild();
-    if (this.save.data.modifiers.includes('mod_breeze')) build.weapons.wind = 1;
-    this.save.data.runs++;
+  // ------------------------------------------------------------ progressão entre partidas
+  buyHero(id: string): void {
+    const s = this.save.data;
+    const h = heroById(id);
+    if (s.heroes.includes(h.id)) {
+      s.selectedHero = h.id;
+    } else if (s.ashes >= h.cost) {
+      s.ashes -= h.cost;
+      s.heroes.push(h.id);
+      s.selectedHero = h.id;
+      this.audio.sfx('sfx_legendary', { volume: 0.7 });
+    }
+    this.save.save();
+  }
+
+  buyTalent(id: string): boolean {
+    const s = this.save.data;
+    const t = TALENTS.find((x) => x.id === id);
+    if (!t) return false;
+    const r = s.talents[id] ?? 0;
+    if (r >= t.max || s.ashes < t.cost(r)) return false;
+    if (t.requires && !(s.talents[t.requires] > 0)) return false;
+    s.ashes -= t.cost(r);
+    s.talents[id] = r + 1;
+    this.audio.sfx('sfx_rare', { volume: 0.7 });
+    this.save.save();
+    return true;
+  }
+
+  /** devolve todas as Cinzas investidas em talentos */
+  resetTalents(): void {
+    const s = this.save.data;
+    for (const t of TALENTS) for (let r = 0; r < (s.talents[t.id] ?? 0); r++) s.ashes += t.cost(r);
+    s.talents = {};
+    this.save.save();
+  }
+
+  relicAction(id: string): void {
+    const s = this.save.data;
+    const r = relicById(id);
+    if (s.relics.includes(r.id)) s.selectedRelic = r.id;
+    else if (s.ashes >= r.cost) {
+      s.ashes -= r.cost;
+      s.relics.push(r.id);
+      s.selectedRelic = r.id;
+      this.audio.sfx('sfx_rare', { volume: 0.7 });
+    }
+    this.save.save();
+  }
+
+  setDifficulty(id: string): void {
+    if (this.save.data.difficulties.includes(id)) this.save.data.difficulty = id;
+    this.save.save();
+  }
+
+  newRun(mode: ModeId = this.lastMode): void {
+    const s = this.save.data;
+    this.lastMode = mode;
+    const daily = mode === 'daily' ? dailyChallenge() : null;
+    const heroId = daily ? daily.hero : s.selectedHero;
+    const cfg: RunConfig = {
+      mode, difficulty: daily ? 'normal' : (difficultyById(s.difficulty).id), relic: daily ? 'r_none' : s.selectedRelic,
+      daily: daily ? daily.mods : [], dailyKey: daily ? daily.key : '',
+    };
+    const meta = computeMeta(s.talents, cfg.relic);
+    if (cfg.daily.includes('glass')) {
+      meta.might += 0.4;
+      meta.hp -= 55;
+    }
+    if (cfg.daily.includes('rich')) meta.xp += 1;
+    const build = newBuild(heroId, meta);
+    if (s.modifiers.includes('mod_breeze') && Object.keys(build.weapons).length < 6) build.weapons.wind = 1;
+    if (cfg.daily.includes('arsenal')) {
+      const free = WEAPON_ORDER.filter((w) => !build.weapons[w]);
+      build.weapons[free[Math.floor(rng.next() * free.length)]] = 1;
+    }
+    s.runs++;
+    const rerolls = (s.modifiers.includes('mod_blessing') ? 1 : 0) + (relicById(cfg.relic).rerolls ?? 0);
     const state: RunState = {
-      build, level: 1, xp: 0, kills: 0, time: 0, cardsTaken: [], coins: 0,
-      rerolls: this.save.data.modifiers.includes('mod_blessing') ? 1 : 0, hp: 100, damage: {},
+      build, level: 1, xp: 0, kills: 0, time: 0, cardsTaken: [], coins: 0, rerolls, hp: 999, damage: {}, cfg, revives: -1,
     };
     void this.startAct(0, state);
   }
+
+  private lastMode: ModeId = 'campaign';
 
   continueRun(): void {
     const cp = this.save.data.checkpoint;
@@ -174,7 +251,9 @@ export class Game {
     const state: RunState = {
       build: JSON.parse(JSON.stringify(cp.build)), level: cp.level, xp: cp.xp, kills: cp.kills, time: cp.time,
       cardsTaken: [...cp.cardsTaken], coins: cp.coins, rerolls: cp.rerolls, hp: cp.hp, damage: {},
+      cfg: { mode: 'campaign', difficulty: (cp.difficulty as RunConfig['difficulty']) ?? 'normal', relic: cp.relic ?? 'r_none', daily: [], dailyKey: '' }, revives: cp.revives ?? -1,
     };
+    this.lastMode = 'campaign';
     void this.startAct(cp.act, state);
   }
 
@@ -187,13 +266,16 @@ export class Game {
     this.menus.hide();
     this.menus.hideCards();
     this.hud.show(false);
-    const act = ACTS[i];
+    const act = state.cfg.mode === 'endless' ? ENDLESS_ACT : ACTS[i];
     this.actIndex = i;
-    // ponto de controle no início de cada ato
-    this.save.data.checkpoint = {
-      act: i, level: state.level, xp: state.xp, build: JSON.parse(JSON.stringify(state.build)), kills: state.kills, time: state.time,
-      cardsTaken: [...state.cardsTaken], coins: state.coins, rerolls: state.rerolls, hp: Math.max(state.hp, 60),
-    };
+    // ponto de controle no início de cada ato (apenas campanha)
+    if (state.cfg.mode === 'campaign') {
+      this.save.data.checkpoint = {
+        act: i, level: state.level, xp: state.xp, build: JSON.parse(JSON.stringify(state.build)), kills: state.kills, time: state.time,
+        cardsTaken: [...state.cardsTaken], coins: state.coins, rerolls: state.rerolls, hp: Math.max(state.hp, 60),
+        mode: 'campaign', difficulty: state.cfg.difficulty, relic: state.cfg.relic, revives: state.revives,
+      };
+    }
     this.save.save();
     const card = this.menus.actCard(act.title, act.subtitle);
     this.destroyWorld();
@@ -205,6 +287,8 @@ export class Game {
     if (i > 0 && this.save.data.modifiers.includes('mod_blessing') && state.rerolls < 1) state.rerolls++;
     state.hp = Math.max(state.hp, 60);
     const w = new World(this, i, state, ground);
+    if (state.revives < 0) w.revivesLeft = w.stats.revives;
+    if (state.hp >= 999) w.hero.hp = w.stats.maxHp;
     this.world = w;
     this.app.stage.addChild(w.root);
     w.resize(window.innerWidth, window.innerHeight);
@@ -231,14 +315,38 @@ export class Game {
     const w = this.world;
     if (!w) return;
     const s = this.save.data;
+    const cfg = w.cfg;
     const bonus = victory ? 60 : 0;
-    const mult = s.modifiers.includes('mod_tide') ? 1.6 : 1;
-    const ashes = Math.round((w.coins + bonus + Math.floor(w.kills / 40)) * mult);
+    const endlessBonus = cfg.mode === 'endless' ? Math.floor(w.runTime / 30) * 3 : 0;
+    const mult = (s.modifiers.includes('mod_tide') ? 1.6 : 1) * difficultyById(cfg.difficulty).ashes * (cfg.daily.includes('elite') ? 1.3 : 1);
+    const ashes = Math.round((w.coins + bonus + endlessBonus + Math.floor(w.kills / 40)) * mult);
     s.ashes += ashes;
+    s.totalKills += w.kills;
+    const unlocks: string[] = [];
+    let record = false;
+    if (cfg.mode === 'endless') {
+      record = w.runTime > s.endlessBest;
+      if (record) s.endlessBest = w.runTime;
+    }
+    if (cfg.mode === 'daily') {
+      if (s.dailyKey !== cfg.dailyKey) {
+        s.dailyKey = cfg.dailyKey;
+        s.dailyBest = 0;
+      }
+      const score = w.kills + (victory ? 2000 : 0);
+      record = score > s.dailyBest;
+      if (record) s.dailyBest = score;
+    }
     if (victory) {
       s.victories++;
       s.bestTime = s.bestTime ? Math.min(s.bestTime, w.runTime) : w.runTime;
-      s.checkpoint = null;
+      if (cfg.mode === 'campaign') s.checkpoint = null;
+      const di = DIFFICULTIES.findIndex((d) => d.id === cfg.difficulty);
+      const next = DIFFICULTIES[di + 1];
+      if (next && !s.difficulties.includes(next.id)) {
+        s.difficulties.push(next.id);
+        unlocks.push(`Dificuldade ${next.name} desbloqueada!`);
+      }
     }
     this.save.save();
     this.state = 'results';
@@ -249,6 +357,7 @@ export class Game {
     this.audio.sfx(victory ? 'sfx_legendary' : 'sfx_hurt', { volume: 0.8 });
     this.menus.results({
       victory, time: w.runTime, kills: w.kills, level: w.level, acts: this.actIndex + (victory ? 1 : 0), cards: w.cardsTaken, damage: w.damageBySource, ashes,
+      mode: cfg.mode, hero: w.build.hero, difficulty: difficultyById(cfg.difficulty).name, record, unlocks,
     });
   }
 
@@ -364,17 +473,15 @@ export class Game {
           break;
         }
         const w = this.world!;
-        // passo fixo de simulação (60 Hz) para combate e colisões
-        this.accumulator += dt;
-        const step = 1 / 60;
-        let n = 0;
-        while (this.accumulator >= step && n < 4) {
+        // passos semi-fixos: cada quadro é dividido em subpassos de no máximo 1/60 s.
+        // Em telas de 90/120/144 Hz o movimento acompanha cada quadro (sem trepidação),
+        // e a física nunca integra passos maiores que 16,7 ms.
+        const n = Math.min(6, Math.ceil(dt * 60 - 1e-3));
+        const step = dt / Math.max(1, n);
+        for (let k = 0; k < n; k++) {
           w.update(step);
-          this.accumulator -= step;
-          n++;
           if (this.state !== 'playing') break;
         }
-        if (n === 4) this.accumulator = 0;
         this.hud.update(w, dt);
         break;
       }
@@ -389,6 +496,7 @@ export class Game {
         i.consume('pause');
         i.consume('dash');
         i.consume('pulse');
+        i.consume('ult');
         break;
       }
       case 'paused':

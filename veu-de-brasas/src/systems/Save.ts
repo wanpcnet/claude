@@ -1,6 +1,6 @@
 import type { Build } from '../content/upgrades';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 const KEY = 'veu-de-brasas.save';
 
 export type Quality = 'low' | 'medium' | 'high';
@@ -27,6 +27,11 @@ export interface RunSnapshot {
   coins: number;
   rerolls: number;
   hp: number;
+  mode?: string;
+  difficulty?: string;
+  relic?: string;
+  daily?: string[];
+  revives?: number;
 }
 
 export interface SaveData {
@@ -40,6 +45,18 @@ export interface SaveData {
   victories: number;
   runs: number;
   checkpoint: RunSnapshot | null;
+  /** v3: progressão entre partidas */
+  heroes: string[];
+  selectedHero: string;
+  talents: Record<string, number>;
+  relics: string[];
+  selectedRelic: string;
+  difficulty: string;
+  difficulties: string[];
+  endlessBest: number;
+  dailyKey: string;
+  dailyBest: number;
+  totalKills: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -65,6 +82,17 @@ export function defaultSave(): SaveData {
     victories: 0,
     runs: 0,
     checkpoint: null,
+    heroes: ['lysa'],
+    selectedHero: 'lysa',
+    talents: {},
+    relics: ['r_none'],
+    selectedRelic: 'r_none',
+    difficulty: 'normal',
+    difficulties: ['normal'],
+    endlessBest: 0,
+    dailyKey: '',
+    dailyBest: 0,
+    totalKills: 0,
   };
 }
 
@@ -95,12 +123,32 @@ export function migrate(raw: unknown): SaveData {
       damageNumbers: typeof s.damageNumbers === 'boolean' ? s.damageNumbers : d.damageNumbers,
     };
   }
-  // versão 1 não tinha checkpoint: aceita apenas se o formato bater
+  const strs = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+  out.heroes = Array.from(new Set([...base.heroes, ...strs(r.heroes)]));
+  if (typeof r.selectedHero === 'string' && out.heroes.includes(r.selectedHero)) out.selectedHero = r.selectedHero;
+  if (r.talents && typeof r.talents === 'object') {
+    for (const [k, v] of Object.entries(r.talents)) if (typeof v === 'number' && isFinite(v) && v > 0) out.talents[k] = Math.floor(v);
+  }
+  out.relics = Array.from(new Set([...base.relics, ...strs(r.relics)]));
+  if (typeof r.selectedRelic === 'string' && out.relics.includes(r.selectedRelic)) out.selectedRelic = r.selectedRelic;
+  out.difficulties = Array.from(new Set([...base.difficulties, ...strs(r.difficulties)]));
+  if (typeof r.difficulty === 'string' && out.difficulties.includes(r.difficulty)) out.difficulty = r.difficulty;
+  if (typeof r.endlessBest === 'number') out.endlessBest = r.endlessBest;
+  if (typeof r.dailyKey === 'string') out.dailyKey = r.dailyKey;
+  if (typeof r.dailyBest === 'number') out.dailyBest = r.dailyBest;
+  if (typeof r.totalKills === 'number') out.totalKills = r.totalKills;
+  // checkpoints de versões anteriores são descartados (formato da build mudou)
   const cp = r.checkpoint as RunSnapshot | null | undefined;
   if (r.version === SAVE_VERSION && cp && typeof cp.act === 'number' && cp.build && typeof cp.build === 'object' && cp.build.weapons) {
     out.checkpoint = {
       ...cp,
-      build: { weapons: { ...cp.build.weapons }, passives: { ...(cp.build.passives ?? {}) }, flags: { ...(cp.build.flags ?? {}) } },
+      build: {
+        hero: typeof cp.build.hero === 'string' ? cp.build.hero : 'lysa',
+        weapons: { ...cp.build.weapons },
+        passives: { ...(cp.build.passives ?? {}) },
+        flags: { ...(cp.build.flags ?? {}) },
+        meta: cp.build.meta ? { ...cp.build.meta } : undefined,
+      },
       cardsTaken: Array.isArray(cp.cardsTaken) ? cp.cardsTaken : [],
     };
   }

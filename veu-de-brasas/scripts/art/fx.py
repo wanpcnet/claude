@@ -495,3 +495,195 @@ def build(atlas):
     A('levelup', levelup_burst().image())
     A('shadow', shadow().image())
     A('vignette', vignette().image())
+
+
+# ================================================================ habilidades novas
+def dagger():
+    c = Canvas(18, 8)
+    c.poly([(2, 4), (5, 2.6), (16.5, 4), (5, 5.4)], ramp('#3a3a5a', '#6a6aa0', '#a8a8e0', '#dcdcff', '#ffffff'), s=0.7, grad=(0.02, -0.06), bevel=0.2)
+    c.line(5, 4, 15, 4, W, 0.5, alpha=0.8)
+    c.capsule(1, 4, 3.4, 4, 1.2, 1.0, PAL['violet'], bias=0.2)
+    c.glow(9, 4, 8, PAL['violet'][3], 0.35)
+    return c
+
+
+def missile(t):
+    c = Canvas(20, 12)
+    for i in range(6):
+        c.ellipse(4 + i * 1.6, 6 + math.sin(t * 6 + i) * 0.6, 1 + i * 0.35, 1 + i * 0.3, PAL['violet'], flat=0.3 + i * 0.1, alpha=0.4 + i * 0.1)
+    c.glow(14, 6, 7, PAL['violet'][4], 0.7)
+    c.ellipse(14, 6, 2.6, 2.6, PAL['violet'], bias=0.5)
+    c.ellipse(13.4, 5.4, 0.9, 0.9, W, flat=1)
+    return c
+
+
+def meteor(t):
+    c = Canvas(28, 40)
+    for i in range(9):
+        y = 6 + i * 2.6
+        c.ellipse(14 + math.sin(t * 6 + i) * 0.8, y, 2.5 + i * 0.5, 2 + i * 0.4, PAL['lava'], flat=0.2 + i * 0.08, alpha=0.5 + i * 0.05)
+    c.ellipse(14, 31, 6.5, 6, PAL['obsidian'], bias=0.1)
+    c.ellipse(14, 31, 6.5, 6, PAL['lava'], bias=0.0, alpha=0.6)
+    for (x, y) in ((11, 29), (16, 33), (13, 34)):
+        c.ellipse(x, y, 1.2, 0.8, PAL['lava'], bias=0.6)
+    c.glow(14, 31, 12, PAL['lava'][3], 0.5)
+    return c
+
+
+def scorch():
+    c = Canvas(48, 48)
+    rng = np.random.default_rng(5)
+    d = np.sqrt((c.xs - 24) ** 2 + (c.ys - 24) ** 2) / 24
+    n = rng.random(c.px.shape[:2]) * 0.25
+    a = np.clip((1 - d) * 1.4 - n, 0, 1) ** 0.8
+    c.px[:, :, 0], c.px[:, :, 1], c.px[:, :, 2] = 0.06, 0.04, 0.04
+    c.px[:, :, 3] = a * 0.8
+    for i in range(10):
+        ang = i / 10 * math.tau + rng.uniform(-0.2, 0.2)
+        c.line(24, 24, 24 + math.cos(ang) * rng.uniform(12, 22), 24 + math.sin(ang) * rng.uniform(12, 22), PAL['lava'][2], 0.8, alpha=0.7)
+    return c
+
+
+def ice_ring(size=128):
+    c = Canvas(size, size)
+    r0 = size / 2
+    d = np.sqrt((c.xs - r0) ** 2 + (c.ys - r0) ** 2) / r0
+    a = np.clip(1 - np.abs(d - 0.8) / 0.14, 0, 1) ** 1.2
+    c.px[:, :, 0], c.px[:, :, 1], c.px[:, :, 2] = 0.7, 0.92, 1.0
+    c.px[:, :, 3] = a * 0.9
+    for i in range(16):
+        ang = i / 16 * math.tau
+        x, y = r0 + math.cos(ang) * r0 * 0.8, r0 + math.sin(ang) * r0 * 0.8
+        c.poly([(x - math.cos(ang) * 4, y - math.sin(ang) * 4), (x + math.cos(ang + 1.57) * 2.5, y + math.sin(ang + 1.57) * 2.5),
+                (x + math.cos(ang) * 9, y + math.sin(ang) * 9), (x - math.cos(ang + 1.57) * 2.5, y - math.sin(ang + 1.57) * 2.5)], PAL['glass'], s=0.8, bevel=0.2)
+    return c
+
+
+def snowflake():
+    c = Canvas(10, 10)
+    for i in range(3):
+        a = i * math.pi / 3
+        c.line(5 - math.cos(a) * 4, 5 - math.sin(a) * 4, 5 + math.cos(a) * 4, 5 + math.sin(a) * 4, hexc('#e8fbff'), 0.7)
+    return c
+
+
+def spike(t):
+    """espinho de obsidiana irrompendo do chão (t: 0 → 1)"""
+    c = Canvas(24, 32)
+    h = 26 * min(1, t * 1.6)
+    for (x, s, k) in ((12, 1.0, 0.6), (7, 0.6, 0.45), (17, 0.7, 0.5)):
+        hh = h * s
+        if hh < 1:
+            continue
+        c.poly([(x - 4.6 * s, 30), (x - 0.8 * s, 30 - hh * 0.7), (x, 30 - hh), (x + 1.2 * s, 30 - hh * 0.6), (x + 4.6 * s, 30)], PAL['obsidian'], s=k, grad=(-0.04, 0), bevel=0.2)
+        c.line(x, 30 - hh + 2, x - 0.8, 29, PAL['violet'][3], 0.5, alpha=0.8)
+    c.ellipse(12, 30, 9, 2, PAL['dark'], bias=-0.1, alpha=0.8)
+    return c
+
+
+def totem(t):
+    c = Canvas(24, 44)
+    c.poly([(7, 42), (17, 42), (15, 12), (9, 12)], PAL['stone'], s=0.55, grad=(-0.04, 0), bevel=0.15)
+    for y in (18, 26, 34):
+        c.line(9, y, 15, y, PAL['copper'][3], 0.8)
+    c.poly([(5, 13), (19, 13), (16, 8), (8, 8)], PAL['copper'], s=0.6, bevel=0.2)
+    pulse = 0.5 + 0.5 * math.sin(t * math.tau)
+    c.glow(12, 6, 9, hexc('#9ad0ff'), 0.4 + pulse * 0.5)
+    c.ellipse(12, 5, 2.6, 2.6, PAL['cyan'], bias=0.5)
+    c.outline(mix=0.2)
+    return c
+
+
+def wisp(t, pal='cyan'):
+    c = Canvas(16, 22)
+    p = PAL[pal]
+    for i in range(5):
+        y = 8 + i * 2.6
+        c.ellipse(8 + math.sin(t * math.tau + i) * 1.4 * (i / 4), y, 4 - i * 0.6, 3.2 - i * 0.4, p, flat=0.75 - i * 0.12, alpha=0.9 - i * 0.12)
+    c.glow(8, 8, 8, p[3], 0.6)
+    c.ellipse(8, 8, 3.2, 3.2, p, bias=0.5)
+    c.pix(7, 7, W)
+    c.pix(9, 7, W)
+    return c
+
+
+def blood_slash(t):
+    c = Canvas(72, 48)
+    a0, a1 = -1.3, -1.3 + 2.6 * min(1, t * 1.5)
+    for k in range(4):
+        r = 26 + k * 3
+        c.arc(14, 24, r, a0, a1, [hexc('#5a0612'), hexc('#a8142a'), hexc('#e8304a'), hexc('#ffb0b8')][k], 2.6 - k * 0.5, alpha=(1 - t * 0.7))
+    return c
+
+
+def moon_blade():
+    c = Canvas(22, 22)
+    c.ellipse(11, 11, 9, 9, ramp('#4a5a8a', '#8090c8', '#c0ccf0', '#e8eeff', '#ffffff'), bias=0.25)
+    c.ellipse(14, 9, 8, 8, PAL['white'], flat=0.0, alpha=0)  # (sem efeito: forma recortada abaixo)
+    m = c.px[:, :, 3] > 0
+    d = np.sqrt((c.xs - 14.5) ** 2 + (c.ys - 8.5) ** 2) < 7.5
+    c.px[m & d] = 0
+    c.glow(11, 11, 11, hexc('#c0d8ff'), 0.35)
+    c.outline(mix=0.2)
+    return c
+
+
+def void_orb(t):
+    c = Canvas(56, 56)
+    cx = cy = 28
+    for k in range(5):
+        r = 24 - k * 4
+        a0 = t * math.tau * (1 + k * 0.3) + k
+        c.arc(cx, cy, r, a0, a0 + 3.6, PAL['violet'][k], 2.2 - k * 0.3, alpha=0.75)
+    c.glow(cx, cy, 20, PAL['violet'][2], 0.6)
+    c.ellipse(cx, cy, 8, 8, ramp('#000000', '#05030a', '#0a0614', '#140a24', '#2a1648'), bias=-0.2)
+    c.arc(cx, cy, 8.5, 0, math.tau, PAL['violet'][4], 0.8)
+    return c
+
+
+def thorn_ring(size=128):
+    c = Canvas(size, size)
+    r0 = size / 2
+    for i in range(28):
+        a = i / 28 * math.tau
+        x, y = r0 + math.cos(a) * r0 * 0.8, r0 + math.sin(a) * r0 * 0.8
+        tip = (r0 + math.cos(a) * r0 * 0.97, r0 + math.sin(a) * r0 * 0.97)
+        c.poly([(x + math.cos(a + 1.57) * 3, y + math.sin(a + 1.57) * 3), tip, (x - math.cos(a + 1.57) * 3, y - math.sin(a + 1.57) * 3)], PAL['wood'], s=0.6, bevel=0.2)
+    c.arc(r0, r0, r0 * 0.8, 0, math.tau, PAL['jade'][2], 2.4)
+    c.arc(r0, r0, r0 * 0.8, 0, math.tau, PAL['jade'][4], 0.8)
+    return c
+
+
+def crack_decal(size=96):
+    c = Canvas(size, size)
+    rng = np.random.default_rng(9)
+    r0 = size / 2
+    for i in range(9):
+        a = i / 9 * math.tau + rng.uniform(-0.3, 0.3)
+        x, y = r0, r0
+        for k in range(6):
+            a += rng.uniform(-0.5, 0.5)
+            nx, ny = x + math.cos(a) * size * 0.08, y + math.sin(a) * size * 0.08
+            c.line(x, y, nx, ny, hexc('#140c08'), 2.2 - k * 0.3, alpha=0.85)
+            c.line(x, y, nx, ny, PAL['lava'][2], 0.6, alpha=0.6 - k * 0.08)
+            x, y = nx, ny
+    return c
+
+
+def build_extra(atlas):
+    A = atlas.add
+    A('dagger', dagger().image())
+    atlas.anim('missile', [missile(i / 3).image() for i in range(3)])
+    atlas.anim('meteor', [meteor(i / 3).image() for i in range(3)])
+    A('scorch', scorch().image())
+    A('ice_ring', ice_ring().image())
+    A('snowflake', snowflake().image())
+    atlas.anim('spike', [spike(t).image() for t in (0.2, 0.45, 0.7, 1.0)])
+    atlas.anim('totem', [totem(i / 4).image() for i in range(4)])
+    atlas.anim('wisp', [wisp(i / 4).image() for i in range(4)])
+    atlas.anim('wisp_v', [wisp(i / 4, 'violet').image() for i in range(4)])
+    atlas.anim('slash', [blood_slash(t).image() for t in (0.2, 0.5, 0.8, 1.0)])
+    A('moon', moon_blade().image())
+    atlas.anim('void', [void_orb(i / 6).image() for i in range(6)])
+    A('thorns', thorn_ring().image())
+    A('crack', crack_decal().image())

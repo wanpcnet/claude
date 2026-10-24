@@ -81,7 +81,7 @@ describe('Roteiro dos atos', () => {
 describe('Assets existem no repositório', () => {
   it('atlas, áudio, fontes e solo', () => {
     const base = 'public/assets/';
-    const atlases = ['characters/hero', 'enemies/enemies', 'enemies/bosses', 'effects/fx', 'environment/props', 'ui/icons'];
+    const atlases = ['characters/hero_lysa', 'characters/hero_orin', 'characters/hero_brann', 'characters/hero_nyx', 'enemies/enemies', 'enemies/bosses', 'effects/fx', 'environment/props', 'ui/icons'];
     for (const a of atlases) {
       expect(existsSync(base + a + '.png'), a).toBe(true);
       const j = JSON.parse(readFileSync(base + a + '.json', 'utf8'));

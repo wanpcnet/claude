@@ -1,4 +1,4 @@
-export type DamageType = 'physical' | 'fire' | 'lightning' | 'crystal' | 'wind' | 'arcane';
+export type DamageType = 'physical' | 'fire' | 'lightning' | 'crystal' | 'wind' | 'arcane' | 'ice' | 'shadow' | 'blood' | 'light';
 
 /** Fontes de dano persistente: cada uma tem cooldown por alvo (evita dano a cada quadro). */
 export enum Src {
@@ -13,7 +13,21 @@ export enum Src {
   Burn = 8,
   Shard = 9,
   Phoenix = 10,
-  Count = 11,
+  Dagger = 11,
+  Missile = 12,
+  Meteor = 13,
+  Frost = 14,
+  Spikes = 15,
+  Totem = 16,
+  Wisp = 17,
+  Whip = 18,
+  Moon = 19,
+  Void = 20,
+  Rain = 21,
+  Thorns = 22,
+  Active = 23,
+  Ult = 24,
+  Count = 25,
 }
 
 export interface Hit {

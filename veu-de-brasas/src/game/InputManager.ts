@@ -1,5 +1,5 @@
 /** Entrada unificada: teclado, mouse, toque (joystick virtual) e gamepad. */
-export type Action = 'dash' | 'pulse' | 'pause' | 'card1' | 'card2' | 'card3' | 'confirm' | 'left' | 'right' | 'debug';
+export type Action = 'dash' | 'pulse' | 'ult' | 'pause' | 'card1' | 'card2' | 'card3' | 'confirm' | 'left' | 'right' | 'debug';
 
 export class InputManager {
   private keys = new Set<string>();
@@ -59,6 +59,7 @@ export class InputManager {
       case 'ShiftLeft': return 'dash';
       case 'KeyQ': return 'pulse';
       case 'KeyE': return 'pulse';
+      case 'KeyR': return 'ult';
       case 'Escape': return 'pause';
       case 'KeyP': return 'pause';
       case 'Digit1': case 'Numpad1': return 'card1';
@@ -133,7 +134,7 @@ export class InputManager {
       this.padMove.y = ay;
       this.usingGamepad = true;
     }
-    const map: [number, Action][] = [[0, 'dash'], [1, 'pulse'], [2, 'pulse'], [9, 'pause'], [14, 'left'], [15, 'right'], [4, 'card1'], [3, 'card2'], [5, 'card3']];
+    const map: [number, Action][] = [[0, 'dash'], [1, 'pulse'], [2, 'pulse'], [9, 'pause'], [14, 'left'], [15, 'right'], [4, 'card1'], [3, 'card2'], [5, 'card3'], [6, 'ult'], [7, 'ult']];
     for (const [i, a] of map) {
       const down = !!gp.buttons[i]?.pressed;
       if (down && !this.padPrev[i]) {

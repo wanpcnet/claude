@@ -132,3 +132,40 @@ export const ACTS: ActScript[] = [
     hints: [{ t: 3, text: 'A água escura não pode ser atravessada — use as plataformas' }],
   },
 ];
+
+/** Modo Sem Fim: população cresce em fases; elites e chefes chegam por tempo (ver Director). */
+function endlessWaves(): WaveEvent[] {
+  const out: WaveEvent[] = [];
+  const kinds = ['rust', 'spider', 'wasp', 'rust', 'ghost', 'shell', 'rust', 'frog', 'slime'];
+  const sides: (Side | 'around')[] = ['around', 'east', 'north', 'west', 'south'];
+  for (let i = 0; i < 120; i++) {
+    const enemy = kinds[i % kinds.length];
+    const big = enemy === 'shell' || enemy === 'slime' || enemy === 'frog';
+    const ring = enemy === 'rust' && i % 3 === 0;
+    out.push({ t: 25 + i * 28, enemy, count: Math.round((big ? 5 : 22) * (1 + i * 0.06)), side: ring ? 'around' : sides[i % sides.length], formation: ring ? 'ring' : big ? 'cluster' : 'arc' });
+  }
+  return out;
+}
+
+export const ENDLESS_ACT: ActScript = {
+  map: 'arenaA',
+  title: 'Sem Fim — Jardim das Cinzas',
+  subtitle: 'Resista à maré enquanto puder',
+  stages: [{ type: 'kills', goal: 1e9, text: 'Sobreviva' }],
+  ambient: [
+    { from: 0, target: 30, rate: 4, mix: { rust: 1 } },
+    { from: 45, target: 70, rate: 7, mix: { rust: 4, spider: 2, wasp: 1 } },
+    { from: 120, target: 110, rate: 9, mix: { rust: 5, spider: 2, wasp: 2, slime: 1, ghost: 1 } },
+    { from: 240, target: 150, rate: 12, mix: { rust: 5, spider: 3, wasp: 2, ghost: 2, frog: 1, shell: 1 } },
+    { from: 420, target: 200, rate: 15, mix: { rust: 6, spider: 3, wasp: 3, ghost: 2, frog: 2, shell: 1, slime: 1 } },
+    { from: 660, target: 250, rate: 18, mix: { rust: 7, spider: 4, wasp: 3, ghost: 3, frog: 2, shell: 2, slime: 1 } },
+    { from: 960, target: 300, rate: 22, mix: { rust: 8, spider: 4, wasp: 4, ghost: 3, frog: 2, shell: 2, slime: 2 } },
+  ],
+  channelAmbient: { from: 0, target: 120, rate: 8, mix: { rust: 6, spider: 3 } },
+  bossAmbient: { from: 0, target: 70, rate: 5, mix: { rust: 4, spider: 2, wasp: 1 } },
+  waves: endlessWaves(),
+  hints: [
+    { t: 2, text: 'Sem Fim: elites a cada 2 minutos, um chefe a cada 5' },
+    { t: 14, text: 'R: Suprema — carregada por abates' },
+  ],
+};

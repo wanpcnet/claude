@@ -431,3 +431,147 @@ def build(atlas, out_dir):
     emblem().image().save(os.path.join(out_dir, 'emblem.png'))
     cursor().image().save(os.path.join(out_dir, 'cursor.png'))
     bitmap_font(out_dir)
+
+
+# ================================================================ ícones novos (habilidades, passivos, talentos)
+def icon_from(img: Image.Image, glow_col=None, rot=0):
+    """ícone 32x32 a partir de um sprite de efeito: centraliza, ajusta e adiciona halo"""
+    from pixel import SC
+    size = 32 * SC
+    im = img.convert('RGBA')
+    if rot:
+        im = im.rotate(rot, expand=True, resample=Image.BICUBIC)
+    bb = im.getbbox()
+    if bb:
+        im = im.crop(bb)
+    k = (size * 0.82) / max(im.width, im.height)
+    im = im.resize((max(1, int(im.width * k)), max(1, int(im.height * k))), Image.LANCZOS)
+    c = Canvas(32, 32)
+    if glow_col is not None:
+        c.glow(16, 16, 15, glow_col, 0.45)
+    base = c.image()
+    base.alpha_composite(im, ((size - im.width) // 2, (size - im.height) // 2))
+    return base
+
+
+def ic_eye():
+    c = Canvas(32, 32)
+    c.ellipse(16, 16, 12, 7, PAL['bone'], bias=0.1)
+    c.ellipse(16, 16, 5, 5, PAL['amber'], bias=0.3)
+    c.ellipse(16, 16, 2, 4, PAL['dark'], flat=0)
+    c.pix(14, 13, W)
+    c.outline(); return c
+
+
+def ic_skull_blade():
+    c = Canvas(32, 32)
+    c.poly([(6, 26), (22, 6), (26, 10), (10, 28)], PAL['white'], s=0.7, bevel=0.2)
+    c.line(9, 23, 13, 27, PAL['gold'][3], 2.5)
+    for (x, y) in ((22, 22), (26, 18), (18, 26)):
+        c.ellipse(x, y, 1.6, 1.6, PAL['carmine'], bias=0.3)
+    c.outline(); return c
+
+
+def ic_echo():
+    c = Canvas(32, 32)
+    for r, a in ((12, 0.4), (8, 0.7), (4, 1.0)):
+        c.arc(16, 16, r, -2.4, 0.8, PAL['violet'][4], 2, alpha=a)
+    c.ellipse(16, 16, 2.4, 2.4, PAL['violet'], bias=0.5)
+    c.outline(mix=0.2); return c
+
+
+def ic_feather():
+    c = Canvas(32, 32)
+    c.poly([(6, 26), (20, 4), (26, 8), (10, 28)], PAL['ivory'], s=0.7, bevel=0.2)
+    c.line(6, 27, 24, 6, PAL['wood'][3], 1)
+    for k in range(3):
+        c.line(18 + k * 3, 22 - k * 2, 28 + k, 20 - k * 2, hexc('#d8d2c8'), 1)
+    c.outline(); return c
+
+
+def ic_clover():
+    c = Canvas(32, 32)
+    for a in range(4):
+        ang = a * math.pi / 2 + math.pi / 4
+        c.ellipse(16 + math.cos(ang) * 5, 14 + math.sin(ang) * 5, 5, 5, PAL['jade'], bias=0.15)
+    c.line(16, 16, 20, 28, PAL['jade'][1], 1.6)
+    c.ellipse(16, 14, 2, 2, PAL['gold'], bias=0.4)
+    c.outline(); return c
+
+
+def ic_book():
+    c = Canvas(32, 32)
+    c.poly([(5, 8), (16, 10), (16, 27), (5, 25)], PAL['wine'], s=0.55, bevel=0.2)
+    c.poly([(27, 8), (16, 10), (16, 27), (27, 25)], PAL['wine'], s=0.42, bevel=0.2)
+    c.poly([(7, 9), (15, 11), (15, 25), (7, 23)], PAL['ivory'], s=0.75)
+    c.poly([(25, 9), (17, 11), (17, 25), (25, 23)], PAL['ivory'], s=0.65)
+    c.line(9, 14, 13, 15, PAL['dark'][2], 0.8)
+    c.line(9, 17, 13, 18, PAL['dark'][2], 0.8)
+    c.ellipse(21, 17, 2, 2, PAL['jade'], bias=0.5)
+    c.outline(); return c
+
+
+def ic_feather_fire():
+    c = ic_phoenix()
+    c.glow(16, 16, 14, PAL['amber'][4], 0.4)
+    return c
+
+
+def ic_double_dash():
+    c = Canvas(32, 32)
+    for k in range(2):
+        c.poly([(5 + k * 10, 8), (14 + k * 10, 16), (5 + k * 10, 24), (8 + k * 10, 16)], PAL['cyan'] if k else PAL['amber'], s=0.6 + k * 0.15)
+    c.outline(); return c
+
+
+def ic_fist():
+    c = Canvas(32, 32)
+    c.ellipse(16, 16, 9, 8, PAL['carmine'], bias=0.1)
+    for k in range(4):
+        c.ellipse(10 + k * 4, 10, 2.2, 2.6, PAL['carmine'], bias=0.25)
+    c.line(9, 22, 23, 22, PAL['gold'][3], 2)
+    c.glow(16, 16, 15, PAL['lava'][3], 0.35)
+    c.outline(); return c
+
+
+def ic_split():
+    c = Canvas(32, 32)
+    for a in (-0.5, 0, 0.5):
+        ex, ey = 16 + math.sin(a) * 12, 26 - math.cos(a) * 18
+        c.line(16, 26, ex, ey, PAL['violet'][3], 1.6)
+        c.ellipse(ex, ey, 2.2, 2.2, PAL['violet'], bias=0.5)
+    c.ellipse(16, 26, 3, 3, PAL['gold'], bias=0.4)
+    c.outline(mix=0.2); return c
+
+
+def ic_shield_heart():
+    c = ic_shield()
+    c.ellipse(16, 15, 3, 3, PAL['jade'], bias=0.5)
+    return c
+
+
+def build_extra(atlas, out_dir):
+    import fx
+    d = os.path.join(out_dir, 'icons')
+    os.makedirs(d, exist_ok=True)
+    extra = {
+        'w_dagger': icon_from(fx.dagger().image(), PAL['violet'][3], rot=40),
+        'w_missile': icon_from(fx.missile(0).image(), PAL['violet'][3], rot=35),
+        'w_meteor': icon_from(fx.meteor(0).image(), PAL['lava'][3], rot=-25),
+        'w_frost': icon_from(fx.ice_ring(64).image(), PAL['cyan'][3]),
+        'w_spikes': icon_from(fx.spike(1).image(), PAL['violet'][2]),
+        'w_totem': icon_from(fx.totem(0.2).image(), PAL['cyan'][3]),
+        'w_wisp': icon_from(fx.wisp(0.1).image(), PAL['cyan'][3]),
+        'w_whip': icon_from(fx.blood_slash(0.9).image(), PAL['carmine'][3]),
+        'w_moon': icon_from(fx.moon_blade().image(), hexc('#c0d8ff')),
+        'w_void': icon_from(fx.void_orb(0.3).image(), PAL['violet'][3]),
+        'w_rain': icon_from(fx.arrow().image(), PAL['amber'][3], rot=-60),
+        'w_thorns': icon_from(fx.thorn_ring(64).image(), PAL['jade'][3]),
+        'p_crit': ic_eye().image(), 'p_critdmg': ic_skull_blade().image(), 'p_duration': ic_echo().image(),
+        'p_projspeed': ic_feather().image(), 'p_luck': ic_clover().image(), 'p_xp': ic_book().image(),
+        'p_revive': ic_feather_fire().image(), 'p_dash': ic_double_dash().image(), 'p_might': ic_fist().image(),
+        'p_amount': ic_split().image(), 'p_guard': ic_shield_heart().image(),
+    }
+    for k, im in extra.items():
+        im.save(os.path.join(d, f'{k}.png'))
+        atlas.add('icon_' + k, im)

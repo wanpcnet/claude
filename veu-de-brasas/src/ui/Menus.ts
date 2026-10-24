@@ -3,6 +3,11 @@ import { BASE } from '../game/AssetLoader';
 import type { Game } from '../game/Game';
 import { RARITY_LABEL, type CardDef } from '../content/upgrades';
 import { META_ITEMS, type Quality } from '../systems/Save';
+import { HEROES, heroById } from '../content/heroes';
+import { WEAPONS } from '../content/weapons';
+import { TALENTS, RELICS, DIFFICULTIES, MODES, DAILY_MODS, dailyChallenge, difficultyById, type ModeId } from '../content/meta';
+import { startWeaponNames } from '../systems/Abilities';
+import { ACTIVE_ICON, ULT_ICON } from './Hud';
 
 export interface ResultData {
   victory: boolean;
@@ -13,6 +18,11 @@ export interface ResultData {
   cards: string[];
   damage: Record<string, number>;
   ashes: number;
+  mode: ModeId;
+  hero: string;
+  difficulty: string;
+  record: boolean;
+  unlocks: string[];
 }
 
 /** Telas em DOM sobre a superfície WebGL: menu, seleção, santuário, ajustes, pausa, cartas e resultados. */
@@ -66,36 +76,158 @@ export class Menus {
 
   // ------------------------------------------------------------ menu principal
   mainMenu(): void {
+    const s = this.game.save.data;
     const wrap = el('div', 'main-menu');
     const logo = el('div', 'logo');
-    logo.innerHTML = `<img class="emblem" src="${BASE}ui/emblem.png" alt=""><h1>Véu de Brasas</h1><p class="tag">Uma arqueira. Uma coroa em chamas. Uma maré viva.</p>`;
-    const nav = el('nav', 'menu-buttons panel');
+    logo.innerHTML = `<img class="emblem" src="${BASE}ui/emblem.png" alt=""><h1>Véu de Brasas</h1><p class="tag">Quatro guardiões. Uma coroa em chamas. Uma maré viva.</p>`;
+    const nav = el('nav', 'menu-buttons glass');
     nav.append(
       this.button('Jogar', () => this.playSelect(), 'primary'),
+      this.button('Santuário', () => this.sanctuary()),
       this.button('Como jogar', () => this.howTo()),
       this.button('Configurações', () => this.settings(() => this.mainMenu())),
       this.button('Créditos', () => this.credits()),
     );
-    const foot = el('div', 'menu-foot', `Cinzas Eternas: <b>${this.game.save.data.ashes}</b> · Vitórias: ${this.game.save.data.victories}`);
+    const best = s.endlessBest ? ` · Sem Fim: ${fmtTime(s.endlessBest)}` : '';
+    const foot = el('div', 'menu-foot', `<span class="chip">✦ <b>${s.ashes}</b> Cinzas</span><span class="chip">Vitórias ${s.victories}${best}</span>`);
     wrap.append(logo, nav, foot);
     this.show('main', wrap, 'menu-screen');
   }
 
+  private selMode: ModeId = 'campaign';
+
   playSelect(): void {
-    const s = this.game.save.data;
-    const wrap = el('div', 'panel dialog wide');
-    wrap.append(el('h2', '', 'Seleção de partida'));
-    const hero = el('div', 'hero-card');
-    hero.innerHTML = `<div class="hero-portrait"><img src="${BASE}ui/emblem.png" alt=""></div><div><h3>Lysa, a Arqueira-Rúnica</h3><p>Guardiã das Âncoras do Véu. Começa com <b>Flecha Rúnica</b> e <b>Coroa de Brasas</b>.</p></div>`;
-    wrap.append(hero);
-    const row = el('div', 'row');
-    row.append(this.button('Nova jornada', () => this.game.newRun(), 'primary'));
-    if (s.checkpoint) {
-      const cp = s.checkpoint;
-      row.append(this.button(`Continuar · Ato ${['I', 'II', 'III'][cp.act]} (Nv ${cp.level})`, () => this.game.continueRun()));
+    const g = this.game;
+    const s = g.save.data;
+    const wrap = el('div', 'glass dialog xwide select');
+    wrap.append(el('h2', '', 'Nova partida'));
+    // heróis
+    const daily = this.selMode === 'daily' ? dailyChallenge() : null;
+    const heroes = el('div', 'hero-grid');
+    for (const h of HEROES) {
+      const owned = s.heroes.includes(h.id);
+      const sel = daily ? daily.hero === h.id : s.selectedHero === h.id;
+      const c = el('button', `hero-pick ${owned ? '' : 'locked'} ${sel ? 'sel' : ''}`) as HTMLButtonElement;
+      c.type = 'button';
+      const bars = (Object.entries(h.rating) as [string, number][]).map(([k, v]) => `<div class="rate"><span>${k}</span><i style="--v:${v / 5}"></i></div>`).join('');
+      c.innerHTML = `<div class="hp-art"><img src="${BASE}ui/portraits/${h.id}.png" alt=""></div>
+        <div class="hp-info"><b>${h.name}</b><small>${h.title}</small>
+        <p>${h.desc}</p>
+        <p class="kit"><img src="${BASE}ui/icons/${WEAPONS[h.start[0]].icon}.png" alt=""><img src="${BASE}ui/icons/${WEAPONS[h.start[1]].icon}.png" alt=""> ${startWeaponNames(h)}</p>
+        <p class="kit"><img src="${BASE}ui/icons/${ACTIVE_ICON[h.active]}.png" alt=""> <b>Q</b> ${h.activeName} · <img src="${BASE}ui/icons/${ULT_ICON[h.ult]}.png" alt=""> <b>R</b> ${h.ultName}</p>
+        <div class="rates">${bars}</div></div>
+        ${owned ? '' : `<span class="lock">🔒 ${h.cost} ✦</span>`}`;
+      c.disabled = !!daily || (!owned && s.ashes < h.cost);
+      this.sfxHover(c);
+      c.addEventListener('click', () => {
+        g.audio.sfx('sfx_ui_click', { volume: 0.7 });
+        g.buyHero(h.id);
+        this.playSelect();
+      });
+      heroes.append(c);
     }
+    wrap.append(heroes);
+    // modo
+    const opts = el('div', 'opts');
+    const modeRow = el('div', 'opt');
+    modeRow.append(el('h3', '', 'Modo'));
+    const modeSeg = el('div', 'segmented');
+    for (const m of MODES) {
+      const b = this.button(m.name, () => {
+        this.selMode = m.id;
+        this.playSelect();
+      }, 'small');
+      if (this.selMode === m.id) b.classList.add('on');
+      modeSeg.append(b);
+    }
+    modeRow.append(modeSeg, el('p', 'note', MODES.find((m) => m.id === this.selMode)!.desc));
+    if (daily) {
+      const mods = daily.mods.map((id) => DAILY_MODS.find((d) => d.id === id)!);
+      modeRow.append(el('p', 'note daily', `<b>${daily.key}</b> · ${heroById(daily.hero).name} · ${mods.map((m) => `<b>${m.name}</b>: ${m.desc}`).join(' · ')}${s.dailyKey === daily.key && s.dailyBest ? ` · Recorde de hoje: ${s.dailyBest}` : ''}`));
+    }
+    if (this.selMode === 'endless' && s.endlessBest) modeRow.append(el('p', 'note', `Recorde: <b>${fmtTime(s.endlessBest)}</b>`));
+    opts.append(modeRow);
+    if (!daily) {
+      const diffRow = el('div', 'opt');
+      diffRow.append(el('h3', '', 'Dificuldade'));
+      const dseg = el('div', 'segmented');
+      for (const d of DIFFICULTIES) {
+        const unlocked = s.difficulties.includes(d.id);
+        const b = this.button(unlocked ? d.name : `🔒 ${d.name}`, () => {
+          g.setDifficulty(d.id);
+          this.playSelect();
+        }, 'small');
+        b.disabled = !unlocked;
+        b.title = unlocked ? d.desc : 'Vença a campanha na dificuldade anterior para desbloquear';
+        if (s.difficulty === d.id) b.classList.add('on');
+        dseg.append(b);
+      }
+      diffRow.append(dseg, el('p', 'note', difficultyById(s.difficulty).desc));
+      const relRow = el('div', 'opt');
+      relRow.append(el('h3', '', 'Relíquia'));
+      const rgrid = el('div', 'relics');
+      for (const r of RELICS) {
+        const owned = s.relics.includes(r.id);
+        const b = el('button', `relic ${owned ? '' : 'locked'} ${s.selectedRelic === r.id ? 'sel' : ''}`) as HTMLButtonElement;
+        b.type = 'button';
+        b.innerHTML = `<img src="${BASE}ui/icons/${r.icon}.png" alt=""><span><b>${r.name}</b><small>${r.desc}</small></span>${owned ? '' : `<em>${r.cost} ✦</em>`}`;
+        b.disabled = !owned && s.ashes < r.cost;
+        this.sfxHover(b);
+        b.addEventListener('click', () => {
+          g.audio.sfx('sfx_ui_click', { volume: 0.7 });
+          g.relicAction(r.id);
+          this.playSelect();
+        });
+        rgrid.append(b);
+      }
+      relRow.append(rgrid);
+      opts.append(diffRow, relRow);
+    }
+    wrap.append(opts);
+    const row = el('div', 'row');
+    row.append(this.button(this.selMode === 'campaign' ? 'Nova jornada' : this.selMode === 'endless' ? 'Iniciar Sem Fim' : 'Aceitar desafio', () => g.newRun(this.selMode), 'primary'));
+    if (s.checkpoint && this.selMode === 'campaign') {
+      const cp = s.checkpoint;
+      row.append(this.button(`Continuar · Ato ${['I', 'II', 'III'][cp.act]} · ${heroById(cp.build.hero).name} Nv ${cp.level}`, () => g.continueRun()));
+    }
+    row.append(this.button('Voltar', () => this.mainMenu(), 'ghost'));
     wrap.append(row);
-    wrap.append(el('h3', 'sub', `Santuário — Cinzas Eternas: <b class="ash">${s.ashes}</b>`));
+    wrap.append(el('p', 'menu-foot center', `<span class="chip">✦ <b>${s.ashes}</b> Cinzas Eternas</span>`));
+    this.show('select', wrap);
+  }
+
+  /** Santuário: talentos permanentes, aparências da coroa e modificadores */
+  sanctuary(): void {
+    const g = this.game;
+    const s = g.save.data;
+    const wrap = el('div', 'glass dialog xwide');
+    wrap.append(el('h2', '', 'Santuário'));
+    wrap.append(el('p', 'sub', `Invista Cinzas Eternas em melhorias permanentes · <span class="chip">✦ <b>${s.ashes}</b></span>`));
+    const tree = el('div', 'talents');
+    const names = { ataque: 'Ataque', defesa: 'Defesa', utilidade: 'Utilidade' } as const;
+    for (const br of ['ataque', 'defesa', 'utilidade'] as const) {
+      const col = el('div', `branch ${br}`);
+      col.append(el('h3', '', names[br]));
+      for (const t of TALENTS.filter((x) => x.branch === br)) {
+        const r = s.talents[t.id] ?? 0;
+        const locked = !!t.requires && !(s.talents[t.requires] > 0);
+        const maxed = r >= t.max;
+        const b = el('button', `talent ${maxed ? 'max' : ''} ${locked ? 'locked' : ''} ${r > 0 ? 'some' : ''}`) as HTMLButtonElement;
+        b.type = 'button';
+        const pips = Array.from({ length: t.max }, (_, i) => `<i class="${i < r ? 'on' : ''}"></i>`).join('');
+        const req = locked ? `<small class="req">Requer ${TALENTS.find((x) => x.id === t.requires)!.name}</small>` : '';
+        b.innerHTML = `<img src="${BASE}ui/icons/${t.icon}.png" alt=""><span class="tinfo"><b>${t.name}</b><small>${t.desc(Math.max(1, r + (maxed ? 0 : 1)))}</small>${req}<span class="pips">${pips}</span></span><em>${maxed ? 'MÁX' : `${t.cost(r)} ✦`}</em>`;
+        b.disabled = maxed || locked || s.ashes < t.cost(r);
+        this.sfxHover(b);
+        b.addEventListener('click', () => {
+          if (g.buyTalent(t.id)) this.sanctuary();
+        });
+        col.append(b);
+      }
+      tree.append(col);
+    }
+    wrap.append(tree);
+    wrap.append(el('h3', 'sub', 'Coroa e modificadores'));
     const grid = el('div', 'meta-grid');
     for (const it of META_ITEMS) {
       const owned = s.unlocked.includes(it.id);
@@ -107,34 +239,44 @@ export class Menus {
       else if (it.kind === 'skin') label = active ? 'Equipada' : 'Equipar';
       else label = active ? 'Ativo' : 'Ativar';
       const b = this.button(label, () => {
-        this.game.metaAction(it.id);
-        this.playSelect();
+        g.metaAction(it.id);
+        this.sanctuary();
       }, 'small');
       if (!owned && s.ashes < it.cost) b.disabled = true;
       card.append(b);
       grid.append(card);
     }
     wrap.append(grid);
-    wrap.append(this.button('Voltar', () => this.mainMenu(), 'ghost'));
-    this.show('select', wrap);
+    const row = el('div', 'row');
+    row.append(
+      this.button('Redistribuir talentos', () => this.confirm('Devolver todas as Cinzas investidas em talentos?', () => {
+        g.resetTalents();
+        this.sanctuary();
+      }, () => this.sanctuary()), 'small ghost'),
+      this.button('Voltar', () => this.mainMenu(), 'ghost'),
+    );
+    wrap.append(row);
+    this.show('sanctuary', wrap);
   }
 
   howTo(): void {
-    const wrap = el('div', 'panel dialog wide');
+    const wrap = el('div', 'glass dialog wide');
     wrap.innerHTML = `<h2>Como jogar</h2>
     <div class="howto">
       <section><h3>Controles</h3>
-        <p><kbd>WASD</kbd>/<kbd>setas</kbd> mover · <kbd>Espaço</kbd> esquiva · <kbd>Q</kbd> Pulso da Coroa · <kbd>Esc</kbd> pausa · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> escolher carta · <kbd>F3</kbd> painel de desempenho</p>
-        <p>Toque: joystick à esquerda, botões de esquiva e pulso à direita. Gamepad: analógico esquerdo, A esquiva, B/X pulso, Start pausa.</p></section>
-      <section><h3>Objetivo</h3>
-        <p>Atravesse três atos, reacenda as três <b>Âncoras do Véu</b> e destrua o <b>Coração do Véu</b>. Siga a seta dourada na borda da tela.</p></section>
-      <section><h3>Coroa de Brasas</h3>
-        <p>O aro gira ao seu redor e queima quem toca as chamas. <kbd>Q</kbd> expande a coroa num pulso que empurra e incendeia — custa energia (barra âmbar) e tem recarga.</p></section>
-      <section><h3>Cartas</h3>
-        <p>Ao subir de nível o tempo para e surgem três cartas: <span class="r-common">Jade</span> (melhoria direta), <span class="r-rare">Ametista</span> (efeitos especiais) e <span class="r-legendary">Ouro Solar</span> (transformações e combos).</p>
-        <p>Combos: Coroa + Vento = <b>Tornado Incandescente</b> · Raio + Lótus = <b>Estilhaço Trovejante</b> · Lança + Coroa = <b>Alvorada Circular</b>.</p></section>
+        <p><kbd>WASD</kbd>/<kbd>setas</kbd> mover · <kbd>Espaço</kbd> esquiva · <kbd>Q</kbd> habilidade do herói · <kbd>R</kbd> Suprema · <kbd>Esc</kbd> pausa · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> escolher carta</p>
+        <p>Toque: arraste na metade esquerda para mover; botões à direita para esquiva, habilidade (◎) e Suprema (★). Gamepad: analógico, A esquiva, B/X habilidade, gatilhos Suprema.</p></section>
+      <section><h3>Heróis</h3>
+        <p><b>Lysa</b> (flechas e coroa), <b>Orin</b> (mísseis e gelo), <b>Brann</b> (chicote e espinhos, muito resistente) e <b>Nyx</b> (espíritos e vazio). Cada um tem habilidade ativa e Suprema próprias.</p></section>
+      <section><h3>Habilidades e cartas</h3>
+        <p>18 armas, 20 passivas, 10 evoluções e 7 combos. Até 6 armas e 6 passivas por partida. Leve uma arma ao nível 5 com a passiva certa para liberar sua <span class="r-legendary">evolução</span>.</p>
+        <p>Raridades: <span class="r-common">Jade</span>, <span class="r-rare">Ametista</span> e <span class="r-legendary">Ouro Solar</span>. Acertos críticos aparecem em dourado.</p></section>
+      <section><h3>Suprema</h3>
+        <p>A barra da Suprema enche com abates, elites e dano a chefes. Quando brilhar, aperte <kbd>R</kbd> para um efeito devastador.</p></section>
+      <section><h3>Progressão</h3>
+        <p>Cinzas Eternas compram talentos no Santuário, novos heróis e relíquias. Vença a campanha para liberar Pesadelo e Tormento. Experimente o modo Sem Fim e o Desafio Diário.</p></section>
       <section><h3>Leitura de perigo</h3>
-        <p>Todo ataque forte é avisado no solo (círculos, linhas, cones e anéis). Esquive na hora certa: a esquiva concede invulnerabilidade breve.</p></section>
+        <p>Todo ataque forte é avisado no solo. A esquiva concede invulnerabilidade breve — use no último instante.</p></section>
     </div>`;
     wrap.append(this.button('Voltar', () => this.mainMenu(), 'ghost'));
     this.show('howto', wrap);
@@ -248,16 +390,19 @@ export class Menus {
 
   results(r: ResultData): void {
     const wrap = el('div', `panel dialog wide results ${r.victory ? 'win' : 'lose'}`);
-    const title = r.victory ? 'O Véu foi selado' : 'A brasa se apagou';
-    const sub = r.victory ? 'As três Âncoras ardem e o Coração do Véu silenciou.' : 'A maré venceu desta vez — cada tentativa revela novas combinações.';
-    wrap.innerHTML = `<h2>${title}</h2><p class="sub">${sub}</p>`;
+    const endless = r.mode === 'endless';
+    const title = endless ? `Sobreviveu ${fmtTime(r.time)}` : r.victory ? 'O Véu foi selado' : 'A brasa se apagou';
+    const sub = endless ? (r.record ? 'Novo recorde no modo Sem Fim!' : 'A maré sem fim cobrou seu preço.') : r.victory ? 'As três Âncoras ardem e o Coração do Véu silenciou.' : 'A maré venceu desta vez — cada tentativa revela novas combinações.';
+    const h = heroById(r.hero);
+    wrap.innerHTML = `<div class="res-head"><img src="${BASE}ui/portraits/${h.id}.png" alt=""><div><h2>${title}</h2><p class="sub">${sub}</p><p class="sub small">${h.name} · ${r.mode === 'daily' ? 'Desafio Diário' : endless ? 'Sem Fim' : 'Campanha'} · ${r.difficulty}${r.mode === 'daily' && r.record ? ' · <b>recorde do dia!</b>' : ''}</p></div></div>`;
+    for (const u of r.unlocks) wrap.append(el('p', 'unlock', u));
     const stats = el('div', 'stats');
     const dmg = Object.entries(r.damage).sort((a, b) => b[1] - a[1]).slice(0, 5);
     stats.innerHTML = `
       <div><span>Tempo</span><b>${fmtTime(r.time)}</b></div>
       <div><span>Inimigos derrotados</span><b>${r.kills}</b></div>
       <div><span>Nível alcançado</span><b>${r.level}</b></div>
-      <div><span>Atos concluídos</span><b>${r.acts} / 3</b></div>
+      ${endless ? '' : `<div><span>Atos concluídos</span><b>${r.acts} / 3</b></div>`}
       <div><span>Cinzas Eternas obtidas</span><b class="ash">+${r.ashes} ✦</b></div>`;
     wrap.append(stats);
     const cols = el('div', 'res-cols');
@@ -268,8 +413,12 @@ export class Menus {
     cols.append(d, c);
     wrap.append(cols);
     const row = el('div', 'row');
-    row.append(this.button(r.victory ? 'Jogar novamente' : 'Tentar novamente', () => this.game.newRun(), 'primary'));
-    if (!r.victory && this.game.save.data.checkpoint) row.append(this.button('Repetir o ato', () => this.game.continueRun()));
+    row.append(this.button(r.victory ? 'Jogar novamente' : 'Tentar novamente', () => this.game.newRun(r.mode), 'primary'));
+    row.append(this.button('Santuário', () => {
+      this.game.toMenu();
+      this.sanctuary();
+    }));
+    if (!r.victory && r.mode === 'campaign' && this.game.save.data.checkpoint) row.append(this.button('Repetir o ato', () => this.game.continueRun()));
     row.append(this.button('Menu principal', () => this.game.toMenu(), 'ghost'));
     wrap.append(row);
     this.show('results', wrap, 'dim');
@@ -357,8 +506,10 @@ export class Menus {
     stick.append(knob);
     const dash = el('button', 'tbtn dash', `<img src="${BASE}ui/icons/a_dash.png" alt="Esquiva">`);
     const pulse = el('button', 'tbtn pulse', `<img src="${BASE}ui/icons/a_pulse.png" alt="Pulso">`);
+    const ult = el('button', 'tbtn ult', '★');
     const pause = el('button', 'tbtn pause', '❚❚');
-    this.touch.append(stick, dash, pulse, pause);
+    this.touch.append(stick, dash, pulse, ult, pause);
+    this.touchActive = pulse;
     const input = this.game.input;
     let id = -1;
     let ox = 0;
@@ -409,14 +560,22 @@ export class Menus {
       e.stopPropagation();
       input.press('pulse');
     });
+    ult.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      input.press('ult');
+    });
     pause.addEventListener('pointerdown', (e) => {
       e.stopPropagation();
       input.press('pause');
     });
   }
 
+  private touchActive: HTMLElement | null = null;
+
   showTouch(on: boolean): void {
     this.touch.classList.toggle('hidden', !on);
+    const w = this.game.world;
+    if (on && w && this.touchActive) this.touchActive.innerHTML = `<img src="${BASE}ui/icons/${ACTIVE_ICON[w.abilities.def.active]}.png" alt="Habilidade">`;
   }
 
   debug(text: string | null): void {

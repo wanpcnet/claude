@@ -7,6 +7,9 @@ import { Pool } from '../utils/Pool';
 import { rng } from '../utils/rng';
 import { TAU } from '../utils/math';
 import { iso } from '../render/Iso';
+import { WeaponsExtra } from './WeaponsExtra';
+
+const CORE = new Set<WeaponId>(['arrow', 'crown', 'lance', 'chain', 'lotus', 'wind']);
 
 interface Bolt {
   active: boolean;
@@ -39,9 +42,11 @@ export class Weapons {
   private phoenixBudget = 8;
   private crownLight: ReturnType<World['lighting']['flash']> = null;
   crownTint = 0xffffff;
+  readonly extra: WeaponsExtra;
 
   constructor(private w: World) {
     const a = w.assets;
+    this.extra = new WeaponsExtra(w);
     this.ring = new Sprite(a.tex('fx', 'crown_ring'));
     this.ring2 = new Sprite(a.tex('fx', 'crown_ring'));
     this.pulseRing = new Sprite(a.tex('fx', 'ring_thick'));
@@ -107,11 +112,12 @@ export class Weapons {
       const L = this.lvl(id)!;
       this.timers[id] = (this.timers[id] ?? 0.5) - dt;
       if (this.timers[id]! <= 0 && h.alive) {
-        const fired = this.fire(id, L);
+        const fired = CORE.has(id) ? this.fire(id, L) : this.extra.fire(id, L);
         this.timers[id] = fired ? L.cooldown * st.cooldownMul : 0.15;
       }
     }
     this.updateCrown(dt);
+    this.extra.update(dt);
     for (const b of this.bolts.items) {
       if (!b.active) continue;
       b.life -= dt;
@@ -168,8 +174,9 @@ export class Weapons {
       case 'lance': {
         const { ang, target } = this.aim(440, 'always');
         if (!target) return false;
-        for (let i = 0; i < L.count; i++) {
-          const a = ang + (i - (L.count - 1) / 2) * 0.18;
+        const nl = L.count + st.amount;
+        for (let i = 0; i < nl; i++) {
+          const a = ang + (i - (nl - 1) / 2) * 0.18;
           w.projectiles.fire('lance', ox, oy, a, L.speed, L.damage, { pierce: 999, r: L.width / 2, life: 1.3, src: Src.Lance, type: 'fire', burn: L.burn });
         }
         w.sfx('sfx_lance', { volume: 0.6 });
@@ -290,6 +297,16 @@ export class Weapons {
     }
   }
 
+  /** Corrente de Tempestade completa a partir de um ponto (totens condutores) */
+  chainFrom(x: number, y: number, first: Enemy): void {
+    const L = this.lvl('chain');
+    if (L) this.chain(x, y, first, L, L.jumps, false);
+  }
+
+  boltFx(wax: number, way: number, az: number, wbx: number, wby: number, bz: number): void {
+    this.bolt(wax, way, az, wbx, wby, bz);
+  }
+
   /** raio entre dois pontos do mundo (com alturas), desenhado no espaço da tela */
   private bolt(wax: number, way: number, az: number, wbx: number, wby: number, bz: number): void {
     const b = this.bolts.acquire();
@@ -340,15 +357,11 @@ export class Weapons {
     w.sfx('sfx_explosion', { volume: 0.25, gap: 0.08, rate: 1.4 });
   }
 
-  /** Pulso da Coroa (Q). Retorna false se faltar energia ou estiver em recarga. */
-  tryPulse(): boolean {
+  /** Pulso da Coroa (habilidade ativa de Lysa). A energia é cobrada pelo sistema de habilidades. */
+  pulse(): boolean {
     const w = this.w;
-    const L = this.lvl('crown');
-    if (!L) return false;
-    const cost = 55 * w.stats.pulseCostMul;
-    if (this.pulseCd > 0 || w.hero.energy < cost || this.pulseT >= 0) return false;
-    w.hero.energy -= cost;
-    this.pulseCd = 3.2;
+    const L = this.lvl('crown') ?? WEAPONS.crown.levels[0];
+    if (this.pulseT >= 0) return false;
     this.pulseT = 0;
     this.pulseId++;
     this.pulseMax = L.pulseRadius * w.stats.areaMul;
@@ -373,8 +386,16 @@ export class Weapons {
     const w = this.w;
     const h = w.hero;
     const L = this.lvl('crown');
-    this.pulseCd -= dt;
-    if (!L) return;
+    this.ring.visible = this.glow.visible = !!L;
+    if (!L) {
+      for (const f of this.flames) f.visible = false;
+      for (const r of this.runes) r.visible = false;
+      if (this.crownLight) {
+        w.lighting.release(this.crownLight);
+        this.crownLight = null;
+      }
+      return;
+    }
     const solar = !!w.build.flags.l_solar;
     const R = L.radius * w.stats.areaMul;
     this.rot += dt * (2.4 + L.arcs * 0.15);
@@ -493,6 +514,7 @@ export class Weapons {
   }
 
   destroy(): void {
+    this.extra.destroy();
     for (const s of [...this.flames, ...this.flames2]) s.destroy();
   }
 }

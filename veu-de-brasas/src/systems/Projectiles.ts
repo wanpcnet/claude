@@ -7,7 +7,7 @@ import { rng } from '../utils/rng';
 import { TAU } from '../utils/math';
 import { iso } from '../render/Iso';
 
-export type PKind = 'arrow' | 'lance' | 'shard' | 'seed' | 'ember';
+export type PKind = 'arrow' | 'lance' | 'shard' | 'seed' | 'ember' | 'missile' | 'dagger';
 export type EKind = 'orb' | 'coral' | 'lava' | 'crystal';
 
 export interface Proj {
@@ -63,6 +63,7 @@ export class Projectiles {
   private epool: Pool<EProj>;
   private tex: Record<string, Texture> = {};
   private lanceFrames: Texture[];
+  private missileFrames: Texture[];
 
   constructor(private w: World) {
     const a = w.assets;
@@ -70,6 +71,8 @@ export class Projectiles {
     this.enemyLayer.blendMode = 'normal';
     for (const n of ['arrow', 'trail_amber', 'trail_white', 'shard_0', 'shard_1', 'shard_2', 'shard_coral_0', 'shard_coral_1', 'orb_violet', 'orb_cyan', 'lava_glob', 'ember', 'glow']) this.tex[n] = a.tex('fx', n);
     this.lanceFrames = a.anim('fx', 'lance');
+    this.missileFrames = a.anim('fx', 'missile');
+    this.tex.dagger = a.tex('fx', 'dagger');
     this.pool = new Pool<Proj>(() => {
       const s = new Sprite(Texture.EMPTY);
       s.anchor.set(0.5);
@@ -151,6 +154,21 @@ export class Projectiles {
         tr.tint = 0x9ff4ff;
         tr.scale.set(0.8, 1);
         break;
+      case 'missile':
+        p.frames = this.missileFrames;
+        s.texture = this.missileFrames[0];
+        tr.texture = this.tex.trail_white;
+        tr.tint = 0xc08cff;
+        tr.scale.set(0.7, 0.7);
+        p.tx = -1;
+        p.ty = 0;
+        break;
+      case 'dagger':
+        s.texture = this.tex.dagger;
+        tr.texture = this.tex.trail_white;
+        tr.tint = 0xb0a8ff;
+        tr.scale.set(0.6, 0.5);
+        break;
       case 'ember':
         s.texture = this.tex.ember;
         s.scale.set(2.2);
@@ -214,6 +232,7 @@ export class Projectiles {
         p.vx *= 1 + dt * 0.6;
         p.vy *= 1 + dt * 0.6;
       }
+      if (p.kind === 'missile') this.steer(p, dt);
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       const ang = Math.atan2(p.vy, p.vx);
@@ -235,7 +254,7 @@ export class Projectiles {
         continue;
       }
       if (p.life <= 0 || (p.kind !== 'ember' && w.arena.lineClear(p.x - p.vx * dt, p.y - p.vy * dt, p.x, p.y) === false)) {
-        if (p.kind === 'arrow' || p.kind === 'shard') w.fx.at(p.z).hit(p.x, p.y, p.kind === 'arrow' ? 0xffc060 : 0x9ff4ff, 0.4);
+        if (p.kind === 'arrow' || p.kind === 'shard' || p.kind === 'dagger' || p.kind === 'missile') w.fx.at(p.z).hit(p.x, p.y, p.kind === 'arrow' ? 0xffc060 : 0x9ff4ff, 0.4);
         this.release(p);
         continue;
       }
@@ -295,6 +314,27 @@ export class Projectiles {
     }
   }
 
+  /** míssil teleguiado: reavalia o alvo periodicamente e gira a velocidade em direção a ele */
+  private steer(p: Proj, dt: number): void {
+    const w = this.w;
+    p.ty -= dt;
+    let target = p.tx >= 0 ? w.enemies.pool.items[p.tx] : null;
+    if (!target || !target.alive || p.ty <= 0) {
+      const t = w.enemies.nearest(p.x, p.y, 280);
+      p.tx = t ? t.id : -1;
+      p.ty = 0.15;
+      target = t;
+    }
+    if (!target) return;
+    const sp = Math.hypot(p.vx, p.vy);
+    const cur = Math.atan2(p.vy, p.vx);
+    let want = Math.atan2(target.y - p.y, target.x - p.x) - cur;
+    want = Math.atan2(Math.sin(want), Math.cos(want));
+    const turn = Math.max(-p.spin * dt, Math.min(p.spin * dt, want));
+    p.vx = Math.cos(cur + turn) * sp;
+    p.vy = Math.sin(cur + turn) * sp;
+  }
+
   private hasHit(p: Proj, e: Enemy): boolean {
     for (let i = 0; i < p.nHits; i++) if (p.hits[i] === e.id) return true;
     return false;
@@ -317,6 +357,14 @@ export class Projectiles {
       w.fx.at(6).shatter(e.x, e.y, 3);
     } else if (p.kind === 'ember') {
       w.fx.at(6).fire(e.x, e.y, 2, 6);
+    } else if (p.kind === 'missile') {
+      w.fx.at(10).hit(e.x, e.y, 0xc08cff, 0.8);
+      if (w.build.flags.c_shatter && e.slowT > 0) {
+        w.fx.at(8).shatter(e.x, e.y, 6);
+        for (let i = 0; i < 4; i++) this.fire('shard', e.x, e.y, i * 1.57 + 0.4, 280, p.dmg * 0.4, { r: 4, life: 0.4, src: Src.Frost, type: 'ice', z: 8 });
+      }
+    } else if (p.kind === 'dagger') {
+      w.fx.at(10).hit(e.x, e.y, 0xb0a8ff, 0.6);
     }
   }
 

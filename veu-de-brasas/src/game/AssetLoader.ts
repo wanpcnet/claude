@@ -5,7 +5,10 @@ import { AudioManager, SFX_LIST } from './AudioManager';
 export const BASE = new URL(import.meta.env.BASE_URL + 'assets/', location.href).href;
 
 const ATLASES = {
-  hero: 'characters/hero.json',
+  hero_lysa: 'characters/hero_lysa.json',
+  hero_orin: 'characters/hero_orin.json',
+  hero_brann: 'characters/hero_brann.json',
+  hero_nyx: 'characters/hero_nyx.json',
   enemies: 'enemies/enemies.json',
   bosses: 'enemies/bosses.json',
   fx: 'effects/fx.json',

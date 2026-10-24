@@ -387,22 +387,22 @@ def build(atlas):
     def deaths(key, base, tint, seed):
         atlas.anim(key + '_death', shatter_frames(base, 5, tint, seed))
 
-    atlas.anim('rust_walk', [rust_beetle(i / 6).image() for i in range(6)], flash=True)
+    atlas.anim('rust_walk', [rust_beetle(i / 8).image() for i in range(8)], flash=True)
     deaths('rust', rust_beetle(0).image(), (1.0, 0.45, 0.3), 1)
 
-    atlas.anim('spider_walk', [spider(i / 6).image() for i in range(6)], flash=True)
+    atlas.anim('spider_walk', [spider(i / 8).image() for i in range(8)], flash=True)
     atlas.anim('spider_lunge', [spider(0, l).image() for l in (0.3, 0.7, 1.0)], flash=True)
     deaths('spider', spider(0).image(), (0.4, 1.0, 0.95), 2)
 
-    atlas.anim('slime_walk', [slime_child(i / 6).image() for i in range(6)], flash=True)
+    atlas.anim('slime_walk', [slime_child(i / 8).image() for i in range(8)], flash=True)
     atlas.anim('slime_attack', [slime_child(0, s).image() for s in (0.4, 1.0, 0.0, -0.6)], flash=True)
     deaths('slime', slime_child(0).image(), (0.8, 1.0, 0.8), 3)
 
-    atlas.anim('wasp_fly', [glass_wasp(i / 4).image() for i in range(4)], flash=True)
+    atlas.anim('wasp_fly', [glass_wasp(i / 6).image() for i in range(6)], flash=True)
     atlas.anim('wasp_dive', [glass_wasp(i / 4, 1.0).image() for i in range(2)], flash=True)
     deaths('wasp', glass_wasp(0).image(), (0.7, 1.0, 1.0), 4)
 
-    atlas.anim('shell_walk', [red_shell(i / 6).image() for i in range(6)], flash=True)
+    atlas.anim('shell_walk', [red_shell(i / 8).image() for i in range(8)], flash=True)
     atlas.anim('shell_windup', [red_shell(i * 0.13, windup=1).image() for i in range(2)], flash=True)
     atlas.anim('shell_charge', [red_shell(i / 2, charge=1).image() for i in range(2)], flash=True)
     deaths('shell', red_shell(0).image(), (1.0, 0.5, 0.3), 5)
@@ -413,11 +413,11 @@ def build(atlas):
     atlas.anim('frog_land', [rift_frog('land').image()], flash=True)
     deaths('frog', rift_frog('idle').image(), (0.5, 1.0, 0.9), 6)
 
-    atlas.anim('ghost_float', [whisperer(i / 4).image() for i in range(4)], flash=True)
+    atlas.anim('ghost_float', [whisperer(i / 6).image() for i in range(6)], flash=True)
     atlas.anim('ghost_cast', [whisperer(0, k).image() for k in (0.4, 0.8, 1.0)], flash=True)
     deaths('ghost', whisperer(0).image(), (0.7, 0.75, 1.0), 7)
 
-    atlas.anim('guardian_walk', [coral_guardian(i / 6).image() for i in range(6)], flash=True)
+    atlas.anim('guardian_walk', [coral_guardian(i / 8).image() for i in range(8)], flash=True)
     atlas.anim('guardian_windup', [coral_guardian(0, w).image() for w in (0.4, 0.8, 1.0)], flash=True)
     atlas.anim('guardian_broken', [coral_guardian(i / 6, broken=True).image() for i in range(6)], flash=True)
     deaths('guardian', coral_guardian(0, broken=True).image(), (0.6, 1.0, 1.0), 8)

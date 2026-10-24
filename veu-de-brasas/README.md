@@ -1,14 +1,20 @@
 # Véu de Brasas
 
 Ação **2.5D isométrica** de sobrevivência arcana com hordas (survivor-like), fantasia sombria
-bioluminescente. Uma arqueira-rúnica, uma coroa em chamas e uma maré viva de criaturas
-cristalinas: reacenda as três Âncoras do Véu e destrua o Coração do Véu.
+bioluminescente, em **pixel art HD**. Quatro guardiões jogáveis, uma coroa em chamas e uma maré
+viva de criaturas cristalinas: reacenda as três Âncoras do Véu e destrua o Coração do Véu.
 
 - **Renderização:** PixiJS 8 + WebGL (sem Canvas 2D no código do jogo), TypeScript estrito, Vite.
 - **Arte, mapas e áudio originais**, gerados por uma pipeline offline incluída em `scripts/`
   (veja [ASSET_CREDITS.md](ASSET_CREDITS.md)).
-- Campanha de 3 atos (~12–18 min), 7 espécies comuns, 2 elites, 2 chefes com fases,
-  6 armas, 23 cartas em 3 raridades, 3 combos, meta progressão e save local.
+- **4 heróis jogáveis** (Lysa, Orin, Brann, Nyx), cada um com armas iniciais, habilidade
+  ativa (Q) e **Suprema** (R) próprias.
+- **18 armas**, 20 passivas, **10 evoluções** e **7 combos** (até 6 armas + 6 passivas por partida).
+- **3 modos:** Campanha de 3 atos (~12–18 min), **Sem Fim** (recorde de sobrevivência) e
+  **Desafio Diário** (herói e modificadores sorteados pela data).
+- **Progressão entre partidas:** árvore de 13 talentos no Santuário, 6 relíquias, desbloqueio de
+  heróis, 3 dificuldades (Normal, Pesadelo, Tormento), aparências da coroa e modificadores.
+- 7 espécies comuns, 2 elites, 2 chefes com fases; save local versionado (v3).
 
 ## Requisitos
 
@@ -31,6 +37,7 @@ npm run art        # regenera toda a arte em public/assets (Python)
 npm run audio      # regenera trilha e efeitos (Python + ffmpeg)
 node scripts/e2e/smoke.mjs     # teste E2E de fumaça no Chromium (requer build + Playwright)
 node scripts/e2e/campaign.mjs  # percorre a campanha inteira em modo debug
+node scripts/e2e/heroes.mjs    # 4 heróis com as 18 armas, Q/R, modo Sem Fim e Desafio Diário
 ```
 
 ## Controles
@@ -39,7 +46,8 @@ node scripts/e2e/campaign.mjs  # percorre a campanha inteira em modo debug
 |---|---|---|---|
 | Mover | WASD / setas | analógico esquerdo | joystick virtual (metade esquerda) |
 | Esquiva (i-frames) | Espaço / Shift | A | botão de esquiva |
-| Pulso da Coroa | Q / E | B ou X | botão de pulso |
+| Habilidade do herói | Q / E | B ou X | botão ◎ |
+| Suprema | R | gatilhos (LT/RT) | botão ★ |
 | Pausar | Esc / P | Start | botão ❚❚ |
 | Escolher carta | 1 · 2 · 3, clique, ←/→ + Enter | LB · Y · RB, ou cruzeta + A | tocar na carta |
 | Painel de desempenho | F3 ou ` | — | — |
@@ -61,17 +69,36 @@ Uma seta dourada na borda da tela indica o objetivo. Cada ato salva um ponto de 
 (“Continuar” no menu). Ao final há tela de vitória/derrota com tempo, abates, nível, atos,
 dano por habilidade e cartas escolhidas.
 
+## Heróis
+
+| Herói | Armas iniciais | Habilidade (Q) | Suprema (R) | Perfil |
+|---|---|---|---|---|
+| **Lysa**, Arqueira-Rúnica | Flecha Rúnica + Coroa de Brasas | Pulso da Coroa | Alvorada Solar (chuva de lanças) | equilibrada (grátis) |
+| **Orin**, Mago do Véu | Mísseis Arcanos + Nova Glacial | Congelamento em área | Tempestade Arcana (raios) | frágil, recarga −10%, área +10% |
+| **Brann**, Guardiã de Bronze | Chicote de Sangue + Aura de Espinhos | Impacto Sísmico (salto + atordoamento) | Fúria de Bronze (+60% dano, roubo de vida) | +45 vida, armadura +2 |
+| **Nyx**, Invocadora Velada | Fogos-Fátuos + Orbe do Vazio | Revoada Sombria (8 espíritos) | Eclipse (vazio colossal) | duração +25%, coleta +30% |
+
+A Suprema carrega com abates, elites e dano a chefes. Heróis são desbloqueados com Cinzas Eternas.
+
 ## Mecânicas
 
 - **Coroa de Brasas** (assinatura): aro gravado com chamas em arcos e runas orbitais (a
   quantidade de runas/arcos comunica o nível). Queima ao contato. **Q** expande a coroa num
   pulso que empurra inimigos leves e incendeia (custa energia, tem recarga).
-- **Armas:** Flecha Rúnica (perfuração, leque), Coroa de Brasas, Lança Solar (atravessa a
-  linha), Corrente de Tempestade (saltos), Lótus de Cristal (semente que desabrocha em
-  fragmentos), Vento Cinéreo (rajada semicircular com empurrão). 5 níveis cada, em dados.
-- **Combos lendários:** Tornado Incandescente (Coroa + Vento: brasas em espiral, empurrão
-  +50%), Estilhaço Trovejante (Raio + Lótus: fragmentos saltam de cada alvo eletrocutado),
-  Alvorada Circular (Lança + Coroa: o Pulso dispara 6 lanças radiais).
+- **Armas (18, 5 níveis cada, em dados):** Flecha Rúnica, Coroa de Brasas, Lança Solar,
+  Corrente de Tempestade, Lótus de Cristal, Vento Cinéreo, Adagas Espectrais (órbita), Mísseis
+  Arcanos (teleguiados), Chuva de Meteoros, Nova Glacial, Espinhos Sombrios, Totem de Raios,
+  Fogos-Fátuos (invocações), Chicote de Sangue, Lua Crescente (bumerangue), Orbe do Vazio
+  (atração), Chuva de Flechas e Aura de Espinhos (reflete dano).
+- **Evoluções (arma nv 5 + passiva):** Flecha Fênix, Coroa Solar, Tempestade Eterna, Mil Lâminas,
+  Cometa Rúnico, Era do Gelo (congelamento), Floresta de Espinhos, Legião Espectral, Lua
+  Sangrenta e Horizonte de Eventos.
+- **Passivas novas:** crítico e dano crítico (números dourados), poder, duração, velocidade de
+  projétil, sorte, erudição (XP), multiplicidade (+1 projétil), passo duplo (2 cargas de
+  esquiva) e Pena de Fênix (renascer).
+- **Combos lendários (7):** Tornado Incandescente (Coroa + Vento), Estilhaço Trovejante (Raio +
+  Lótus), Alvorada Circular (Lança + Coroa), Geada Estilhaçante (Nova + Mísseis), Para-raios
+  (Totem + Raio), Espinheiro Rubro (Chicote + Espinhos) e Abismo Cadente (Vazio + Meteoros).
 - **Cartas:** Comum/Jade, Raro/Ametista, Lendário/Ouro Solar; nunca oferecem carta
   maximizada; as primeiras escolhas garantem uma habilidade nova; baús de elites/chefes dão
   uma “Relíquia” com raridade aumentada; essências raras concedem renovações.
@@ -85,9 +112,13 @@ dano por habilidade e cartas escolhidas.
 - **Justiça:** todo ataque forte tem aviso texturizado no solo (círculo, linha, cone ou anel,
   com abertura segura nos pulsos do chefe final); inimigos nascem fora da tela, em zonas
   aprovadas do mapa, com caminho até a heroína e nunca a menos de um raio seguro.
-- **Meta progressão (Santuário):** Cinzas Eternas compram aparências da coroa (Aurora,
-  Eclipse) e modificadores (Brisa Inicial, Bênção do Véu, Maré Faminta). Nada é necessário
-  para vencer.
+- **Meta progressão (Santuário):** Cinzas Eternas compram talentos permanentes em três ramos
+  (Ataque, Defesa, Utilidade, com pré-requisitos e redistribuição gratuita), heróis, relíquias
+  (vantagem com custo, escolhida antes da partida), aparências da coroa e modificadores.
+  Vencer a campanha libera a próxima dificuldade (mais vida/dano/densidade, mais Cinzas).
+- **Fluidez:** simulação em subpassos de até 1/60 s que acompanham a taxa de quadros da tela
+  (90/120/144 Hz sem trepidação), inclinação e balanço do personagem, compressão na esquiva,
+  bloom também na qualidade média e gradação de cor na alta.
 
 ## Arquitetura
 

@@ -26,7 +26,9 @@ const touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touch
 const shot = (n) => page.screenshot({ path: `${OUT}/m-${ORI}-${n}.png` });
 const sleep = (ms) => page.waitForTimeout(ms);
 const tapText = async (t) => {
-  const b = await page.locator(`text=${t}`).first().boundingBox();
+  const loc = page.locator(`text=${t}`).first();
+  await loc.scrollIntoViewIfNeeded();
+  const b = await loc.boundingBox();
   await page.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2);
 };
 try {

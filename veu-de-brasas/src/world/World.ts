@@ -14,6 +14,9 @@ import { EnemySystem } from '../systems/EnemySystem';
 import { Projectiles } from '../systems/Projectiles';
 import { Hazards } from '../systems/Hazards';
 import { Weapons } from '../systems/Weapons';
+import { Abilities } from '../systems/Abilities';
+import { difficultyById, relicById, defaultRunConfig, type RunConfig, type DifficultyDef } from '../content/meta';
+import { ENDLESS_ACT, type ActScript } from '../content/acts';
 import { Pickups } from '../systems/Pickups';
 import { Director } from '../systems/Director';
 import { Particles } from '../render/Particles';
@@ -36,12 +39,17 @@ export interface RunState {
   hp: number;
   damage: Record<string, number>;
   pending?: number;
+  cfg: RunConfig;
+  revives: number;
 }
 
-const DMG_COLOR: Record<string, number> = { physical: 0xfff0d0, fire: 0xffa050, lightning: 0xa8d0ff, crystal: 0x9ff4ff, wind: 0xe8e0d0, arcane: 0xd0a0ff };
+const DMG_COLOR: Record<string, number> = { physical: 0xfff0d0, fire: 0xffa050, lightning: 0xa8d0ff, crystal: 0x9ff4ff, wind: 0xe8e0d0, arcane: 0xd0a0ff, ice: 0xc8f0ff, shadow: 0xc090ff, blood: 0xff7080, light: 0xfff2b0 };
 const SRC_NAME: Record<number, string> = {
   [Src.Arrow]: 'Flecha Rúnica', [Src.Crown]: 'Coroa de Brasas', [Src.Pulse]: 'Pulso da Coroa', [Src.Lance]: 'Lança Solar', [Src.Chain]: 'Corrente de Tempestade',
   [Src.Lotus]: 'Lótus de Cristal', [Src.Wind]: 'Vento Cinéreo', [Src.Ember]: 'Tornado Incandescente', [Src.Burn]: 'Queimaduras', [Src.Shard]: 'Fragmentos de Cristal', [Src.Phoenix]: 'Flecha Fênix',
+  [Src.Dagger]: 'Adagas Espectrais', [Src.Missile]: 'Mísseis Arcanos', [Src.Meteor]: 'Chuva de Meteoros', [Src.Frost]: 'Nova Glacial', [Src.Spikes]: 'Espinhos Sombrios',
+  [Src.Totem]: 'Totem de Raios', [Src.Wisp]: 'Fogos-Fátuos', [Src.Whip]: 'Chicote de Sangue', [Src.Moon]: 'Lua Crescente', [Src.Void]: 'Orbe do Vazio', [Src.Rain]: 'Chuva de Flechas',
+  [Src.Thorns]: 'Aura de Espinhos', [Src.Active]: 'Habilidade ativa', [Src.Ult]: 'Suprema',
 };
 
 /** Cena de combate de um ato: mundo, câmera, camadas, sistemas e regras de dano. */
@@ -75,6 +83,16 @@ export class World {
   weapons: Weapons;
   pickups: Pickups;
   director: Director;
+  abilities: Abilities;
+  cfg: RunConfig;
+  diff: DifficultyDef;
+  act: ActScript;
+  endless = false;
+  enemyHpMul = 1;
+  eliteHpMul = 1;
+  enemyDmgMul = 1;
+  enemySpeedMul = 1;
+  revivesLeft = 0;
   particles = new Particles();
   lighting: Lighting;
   floatText = new FloatText();
@@ -118,6 +136,7 @@ export class World {
   private indicator: Container;
   private pauseFilters: Filter[];
   private bloom: Filter | null = null;
+  private grade: ColorMatrixFilter | null = null;
   private screenW = 1280;
   private screenH = 720;
   private xpComboT = 0;
@@ -129,7 +148,10 @@ export class World {
   constructor(readonly game: Game, actIndex: number, state: RunState, ground: { tex: Texture; x: number; y: number }[]) {
     this.assets = game.assets;
     this.actIndex = actIndex;
-    const act = ACTS[actIndex];
+    this.cfg = state.cfg ?? defaultRunConfig();
+    this.endless = this.cfg.mode === 'endless';
+    const act = this.endless ? ENDLESS_ACT : ACTS[actIndex];
+    this.act = act;
     const map = MAPS[act.map];
     this.build = state.build;
     this.stats = deriveStats(this.build);
@@ -144,7 +166,14 @@ export class World {
     this.damageBySource = state.damage;
     this.pendingLevels = state.pending ?? 0;
     this.modTide = game.save.data.modifiers.includes('mod_tide');
-    this.densityMul = this.modTide ? 1.3 : 1;
+    this.diff = difficultyById(this.cfg.difficulty);
+    const daily = new Set(this.cfg.daily);
+    this.densityMul = (this.modTide ? 1.3 : 1) * this.diff.density * (daily.has('tide') ? 1.4 : 1);
+    this.enemyHpMul = this.diff.hp * (relicById(this.cfg.relic).enemyHp ?? 1) * (daily.has('rich') ? 1.3 : 1);
+    this.eliteHpMul = daily.has('elite') ? 1.4 : 1;
+    this.enemyDmgMul = this.diff.dmg;
+    this.enemySpeedMul = daily.has('fast') ? 1.2 : 1;
+    this.revivesLeft = state.revives ?? this.stats.revives;
 
     this.uiTex = { barFrame: game.uiTextures.barFrame, barHp: game.uiTextures.barHp, barBoss: game.uiTextures.barBoss };
     this.arena = new Arena(map);
@@ -182,6 +211,7 @@ export class World {
     this.projectiles = new Projectiles(this);
     this.pickups = new Pickups(this);
     this.weapons = new Weapons(this);
+    this.abilities = new Abilities(this);
     const skin = game.currentSkin();
     this.weapons.applySkin(skin.tint, skin.flame);
 
@@ -231,10 +261,19 @@ export class World {
     this.lighting.overlay.visible = q !== 'low';
     this.particles.max = q === 'low' ? 500 : q === 'medium' ? 1100 : 1800;
     this.fx.density = q === 'low' ? 0.45 : q === 'medium' ? 0.75 : 1;
-    if (q === 'high') {
-      if (!this.bloom) this.bloom = new AdvancedBloomFilter({ threshold: 0.55, bloomScale: 0.7, brightness: 1, blur: 4, quality: 3 });
+    if (q !== 'low') {
+      if (!this.bloom) this.bloom = new AdvancedBloomFilter({ threshold: 0.55, bloomScale: 0.7, brightness: 1, blur: 4, quality: q === 'high' ? 3 : 2 });
       this.fxRoot.filters = [this.bloom];
     } else this.fxRoot.filters = [];
+    // gradação de cor sutil: mais contraste e saturação (visual mais atual)
+    if (q === 'high') {
+      if (!this.grade) {
+        this.grade = new ColorMatrixFilter();
+        this.grade.saturate(0.18, false);
+        this.grade.contrast(0.08, true);
+      }
+      this.root.filters = [this.grade];
+    } else this.root.filters = [];
     this.fx.reduceFlash = this.game.save.data.settings.reduceFlash;
     this.floatText.enabled = this.game.save.data.settings.damageNumbers;
   }
@@ -269,12 +308,15 @@ export class World {
     return {
       build: this.build, level: this.level, xp: this.xp, kills: this.kills, time: this.runTime, cardsTaken: this.cardsTaken,
       coins: this.coins, rerolls: this.rerolls, hp: this.hero.hp, damage: this.damageBySource, pending: this.pendingLevels + this.pendingBonus,
+      cfg: this.cfg, revives: this.revivesLeft,
     };
   }
 
   refreshStats(): void {
     const oldMax = this.stats.maxHp;
+    const oldRev = this.stats.revives;
     this.stats = deriveStats(this.build);
+    if (this.stats.revives > oldRev) this.revivesLeft += this.stats.revives - oldRev;
     if (this.stats.maxHp > oldMax) this.hero.heal(this.stats.maxHp - oldMax, true);
   }
 
@@ -305,7 +347,7 @@ export class World {
   }
 
   addXp(n: number): void {
-    this.xp += n;
+    this.xp += n * this.stats.xpMul;
     while (this.xp >= this.xpNext) {
       this.xp -= this.xpNext;
       this.level++;
@@ -321,6 +363,15 @@ export class World {
   damageEnemy(e: Enemy, hit: Hit, silent = false): boolean {
     if (!e.alive) return false;
     let amt = hit.amount;
+    let crit = false;
+    if (hit.source !== Src.Burn) {
+      amt *= this.stats.might * this.abilities.mightMul;
+      if (rng.next() < this.stats.critChance) {
+        crit = true;
+        amt *= this.stats.critMul;
+      }
+      if (e.freezeT > 0 && !e.stunned && this.build.flags.l_iceage) amt *= 1.5;
+    }
     if (e.def.armor) amt *= 1 - e.def.armor * (hit.type === 'physical' ? 1 : 0.5);
     if (e.armorHp > 0) {
       const absorbed = amt * 0.75;
@@ -366,9 +417,14 @@ export class World {
       e.flashCd = e.boss || e.def.elite ? 0.35 : 0.1;
       if (e.boss) this.sfx('sfx_hit', { volume: 0.25, gap: 0.08 });
     }
-    if (this.stats.lifesteal > 0 && this.hero.alive) this.lifestealPool += amt * this.stats.lifesteal;
+    const ls = this.stats.lifesteal + (this.abilities.furyT > 0 ? 0.03 : 0);
+    if (ls > 0 && this.hero.alive) this.lifestealPool += amt * ls;
+    if (e.boss) this.abilities.addCharge(amt * 0.004);
     const important = !!e.boss || !!e.def.elite;
-    if (!silent && amt >= 1 && (amt >= 40 || important || hit.heavy)) this.floatText.spawn(e.x, e.y, String(Math.round(amt)), DMG_COLOR[hit.type], amt >= 40, e.radius * 2 + 6 + e.z);
+    if (!silent && amt >= 1 && (amt >= 40 || important || hit.heavy || (crit && amt >= 20))) {
+      if (crit) this.floatText.spawn(e.x, e.y, Math.round(amt) + '!', 0xffd040, true, e.radius * 2 + 10 + e.z);
+      else this.floatText.spawn(e.x, e.y, String(Math.round(amt)), DMG_COLOR[hit.type], amt >= 40, e.radius * 2 + 6 + e.z);
+    }
     if (e.hp <= 0) {
       this.killEnemy(e);
       return true;
@@ -381,6 +437,7 @@ export class World {
     const big = e.boss ? 3 : e.def.elite ? 2 : e.radius > 12 ? 1.3 : 1;
     this.fx.at(e.radius).death(e.x, e.y, e.def.deathTint, big);
     this.sfx('sfx_death', { volume: 0.22 * Math.min(2, big), gap: 0.035, max: 5 });
+    this.abilities.addCharge(e.boss ? 30 : e.def.elite ? 12 : e.isSummon ? 0.2 : 0.6);
     if (!e.isSummon || rng.chance(0.3)) {
       this.kills += e.isSummon ? 0 : 1;
       if (!e.noXp) this.pickups.dropXp(e.x, e.y, e.def.xp);
@@ -404,12 +461,56 @@ export class World {
 
   damageHero(amount: number, sx: number, sy: number): boolean {
     if (this.introT >= 0 || this.completeT >= 0) return false;
-    if (!this.hero.damage(amount, sx, sy)) return false;
+    if (!this.hero.damage(amount * this.enemyDmgMul, sx, sy)) return false;
+    this.weapons.extra.reflect(amount, sx, sy);
+    if (!this.hero.alive && this.revivesLeft > 0) {
+      this.revivesLeft--;
+      this.reviveHero();
+      return true;
+    }
     this.sfx('sfx_hurt', { volume: 0.7, gap: 0.1 });
     this.shake(3);
     this.hitstop(0.03);
     this.game.hud.hurtFlash(this.game.save.data.settings.reduceFlash);
     return true;
+  }
+
+  /** modo Sem Fim: inimigos ficam mais resistentes com o tempo */
+  endlessScale(): number {
+    if (!this.endless) return 1;
+    const m = this.time / 60;
+    return 1 + m * 0.16 + m * m * 0.012;
+  }
+
+  /** congela (ou atordoa) um inimigo; chefes ficam apenas muito lentos */
+  freezeEnemy(e: Enemy, t: number, stun = false): void {
+    if (e.boss || e.mass >= 900) {
+      e.slowT = Math.max(e.slowT, t);
+      e.slowMul = Math.min(e.slowMul, 0.45);
+      return;
+    }
+    e.freezeT = Math.max(e.freezeT, t * (e.def.elite ? 0.5 : 1));
+    e.stunned = stun;
+  }
+
+  /** Segunda Brasa / Pena de Fênix: renasce com metade da vida e uma explosão de fogo */
+  private reviveHero(): void {
+    const h = this.hero;
+    h.alive = true;
+    h.deathT = 0;
+    h.hp = this.stats.maxHp * 0.5;
+    h.invuln = 2.2;
+    this.enemies.forRadius(h.x, h.y, 220, (e) => {
+      const a = Math.atan2(e.y - h.y, e.x - h.x);
+      this.damageEnemy(e, { amount: 120 + this.level * 8, type: 'fire', source: Src.Pulse, knock: 600, kx: Math.cos(a), ky: Math.sin(a), burn: 10, burnDur: 3 }, true);
+    });
+    this.projectiles.clear();
+    this.fx.anchorBurst(h.x, h.y);
+    this.fx.at(20).explosion(h.x, h.y, 2.2);
+    this.shake(9);
+    this.hitstop(0.15);
+    this.sfx('sfx_legendary', { volume: 1 });
+    this.announce('Renascido das brasas!');
   }
 
   activateAnchor(x: number, y: number): void {
@@ -505,8 +606,12 @@ export class World {
     }
     const input = game.input;
     if (!this.controlsLocked && input.consume('pulse')) {
-      if (!this.weapons.tryPulse()) game.hud.denyPulse();
+      if (!this.abilities.tryActive()) game.hud.denyPulse();
     }
+    if (!this.controlsLocked && input.consume('ult')) {
+      if (!this.abilities.tryUlt()) game.hud.denyUlt();
+    }
+    this.abilities.update(sdt);
     this.hero.update(sdt);
     // a heroína não atravessa o corpo do chefe
     const b = this.boss;
@@ -666,6 +771,7 @@ export class World {
   destroy(): void {
     this.destroyed = true;
     this.director.destroy();
+    this.abilities.destroy();
     this.weapons.destroy();
     this.root.destroy({ children: true });
   }

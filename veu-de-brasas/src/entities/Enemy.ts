@@ -40,6 +40,8 @@ export class Enemy {
   burnTick = 0;
   slowT = 0;
   slowMul = 1;
+  freezeT = 0;
+  stunned = false;
   contactCd = 0;
   attackCd = 0;
   hitCd = new Float32Array(Src.Count);

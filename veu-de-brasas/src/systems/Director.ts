@@ -32,6 +32,9 @@ export class Director {
   objective = '';
   objectivePoint: { x: number; y: number } | null = null;
   densityMul = 1;
+  private endlessElite = 0;
+  private endlessBoss = 0;
+  private endlessKind = 0;
 
   constructor(private w: World, private act: ActScript) {
     this.stage = act.stages[0];
@@ -91,7 +94,7 @@ export class Director {
       id: kind, name: ctrl.name, ai: 'swarm', hp: kind === 'toad' ? 6000 : 14000, speed: 0, damage: 14, radius: kind === 'toad' ? 52 : 58, mass: 999, armor: 0,
       xp: 0, anim: kind, walkAnim: kind === 'toad' ? 'toad_idle' : 'heart_p0', fps: 5, deathTint: 0xffc070, anchorY: kind === 'toad' ? 0.82 : 0.55,
     };
-    const hpMul = w.modTide ? 1.1 : 1;
+    const hpMul = (w.modTide ? 1.1 : 1) * w.enemyHpMul * w.eliteHpMul * w.endlessScale();
     e.maxHp = e.hp = Math.round(e.def.hp * hpMul);
     e.armorHp = 0;
     e.x = x;
@@ -201,7 +204,7 @@ export class Director {
 
   private ambient(): AmbientPhase {
     const s = this.stage;
-    if (s.type === 'boss') return this.act.bossAmbient;
+    if (s.type === 'boss' || this.bossEnemy) return this.act.bossAmbient;
     if (s.type === 'anchor' && this.inChannelZone()) return this.act.channelAmbient;
     if (s.type === 'elite') return this.act.bossAmbient;
     let cur = this.act.ambient[0];
@@ -214,8 +217,50 @@ export class Director {
     return Math.hypot(this.w.hero.x - a.x, this.w.hero.y - (a.y + 8)) < 70;
   }
 
+  /** Sem Fim: elites a cada 2 min e chefes a cada 5 min, alternando, ao redor da heroína */
+  private updateEndless(): void {
+    const w = this.w;
+    if (this.bossEnemy) return;
+    const t = w.time;
+    if (t >= (this.endlessBoss + 1) * 300) {
+      this.endlessBoss++;
+      const kind = this.endlessBoss % 2 ? 'toad' : 'heart';
+      const p = this.safePoint(w.hero.x, w.hero.y - 160, 60);
+      this.objectivePoint = p;
+      w.startBossIntro(kind, () => this.spawnBoss(kind, p.x, p.y));
+      return;
+    }
+    if (t >= (this.endlessElite + 1) * 120 && !(this.target && this.target.alive)) {
+      this.endlessElite++;
+      const kind = this.endlessKind++ % 2 ? 'priestess' : 'guardian';
+      const p = this.spawnPoint('around', 1) ?? this.safePoint(w.hero.x, w.hero.y - 220, 80);
+      this.target = w.enemies.spawn(kind, p.x, p.y);
+      w.announce(kind === 'guardian' ? 'Um Guardião de Coral se aproxima!' : 'A Sacerdotisa de Vidro surge!');
+      w.sfx('sfx_roar', { volume: 0.6, rate: 1.2 });
+    }
+  }
+
   onKill(e: Enemy): void {
     if (!e.isSummon) this.kills++;
+    if (this.w.endless) {
+      if (e === this.target && !this.bossEnemy) {
+        this.target = null;
+        this.w.pickups.drop('chest', e.x, e.y);
+        this.w.pickups.drop('heal', e.x + 20, e.y);
+        for (let i = 0; i < 6; i++) this.w.pickups.drop('coin', e.x, e.y, 2);
+      }
+      if (e === this.bossEnemy) {
+        this.bossEnemy = null;
+        this.target = null;
+        this.objectivePoint = null;
+        for (let i = 0; i < 12; i++) this.w.pickups.drop('coin', e.x + rng.range(-40, 40), e.y + rng.range(-30, 30), 3);
+        this.w.pickups.drop('chest', e.x, e.y + 30);
+        this.w.pickups.drop('heal', e.x - 30, e.y);
+        this.w.setBoss(null);
+        this.w.announce('Chefe derrotado! A maré continua...');
+      }
+      return;
+    }
     if (e === this.target && this.stage.type === 'elite') {
       this.target = null;
       this.w.pickups.drop('chest', e.x, e.y);
@@ -259,8 +304,12 @@ export class Director {
       w.hint(hints[this.hintIdx].text);
       this.hintIdx++;
     }
+    if (w.endless) {
+      this.updateEndless();
+      this.objective = `Sobreviva · ${this.kills} abates`;
+    }
     // ondas roteirizadas (pausadas durante chefe)
-    if (this.stage.type !== 'boss' && this.stage.type !== 'elite') {
+    if (this.stage.type !== 'boss' && this.stage.type !== 'elite' && !this.bossEnemy) {
       const waves = this.act.waves;
       if (this.waveIdx < waves.length && w.time >= waves[this.waveIdx].t) {
         this.wave(waves[this.waveIdx]);
@@ -285,7 +334,10 @@ export class Director {
     }
     // objetivo atual
     const s = this.stage;
-    if (s.type === 'kills') {
+    if (w.endless) {
+      if (this.target && this.target.alive && !this.bossEnemy) this.objectivePoint = { x: this.target.x, y: this.target.y };
+      else if (!this.bossEnemy) this.objectivePoint = null;
+    } else if (s.type === 'kills') {
       this.objective = `${s.text} (${Math.min(this.kills, s.goal)}/${s.goal})`;
       if (this.kills >= s.goal) {
         w.sfx('sfx_anchor', { volume: 0.4, rate: 1.5 });

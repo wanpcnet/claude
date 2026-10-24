@@ -54,7 +54,8 @@ export class EnemySystem {
     if (!def) return null;
     const e = this.pool.acquire();
     if (!e) return null;
-    const hpMul = ACT_HP_MULT[this.w.actIndex + 1] * (this.w.modTide ? 1.05 : 1);
+    const w = this.w;
+    const hpMul = ACT_HP_MULT[w.actIndex + 1] * (w.modTide ? 1.05 : 1) * w.enemyHpMul * w.endlessScale() * (def.elite ? w.eliteHpMul : 1);
     e.def = def;
     e.boss = null;
     e.x = x;
@@ -65,10 +66,11 @@ export class EnemySystem {
     e.armorHp = def.id === 'guardian' ? Math.round(650 * hpMul) : 0;
     e.radius = def.radius;
     e.mass = def.mass;
-    e.speed = def.speed * rng.range(0.92, 1.08) * (1 + this.w.actIndex * 0.07);
+    e.speed = def.speed * rng.range(0.92, 1.08) * (1 + w.actIndex * 0.07) * w.enemySpeedMul * Math.min(1.25, Math.sqrt(w.endlessScale()));
     e.state = 'spawn';
     e.st = 0;
-    e.flashT = e.burnT = e.slowT = e.flashCd = 0;
+    e.flashT = e.burnT = e.slowT = e.flashCd = e.freezeT = 0;
+    e.stunned = false;
     e.slowMul = 1;
     e.contactCd = 0;
     e.attackCd = rng.range(1, 3);
@@ -217,6 +219,20 @@ export class EnemySystem {
       const big = !!e.boss || !!e.def.elite;
       const tint = e.boss && e.flashT > 0 ? 0xffd8c8 : e.burnT > 0 ? (big ? 0xffe0d0 : 0xffb08a) : e.slowT > 0 ? (big ? 0xe0f0ff : 0xa8d8ff) : 0xffffff;
       e.sprite.tint = tint;
+      if (e.freezeT > 0) {
+        e.freezeT -= dt;
+        e.sprite.tint = e.stunned ? 0xfff0a0 : 0x7fc8ff;
+        if (e.state !== 'spawn') {
+          e.kx *= Math.exp(-8 * dt);
+          e.ky *= Math.exp(-8 * dt);
+          e.x += e.kx * dt;
+          e.y += e.ky * dt;
+          if (!e.def.fly) arena.resolve(e, e.radius * 0.8, e.mass < 20);
+          if (e.stunned && rng.chance(dt * 6)) w.fx.at(e.radius * 2 + 4).hit(e.x, e.y, 0xfff0a0, 0.3);
+          this.place(e);
+          continue;
+        }
+      }
       if (e.state === 'spawn') {
         const k = Math.min(1, e.st / 0.4);
         e.sprite.scale.set(e.scale * (0.6 + 0.4 * k) * e.facing, e.scale * k);

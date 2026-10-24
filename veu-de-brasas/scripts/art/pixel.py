@@ -29,6 +29,38 @@ def _norm(v):
 
 LIGHT = _norm((-0.5, -0.8, 0.9))
 
+# Resolução física por pixel lógico ("pixel art HD"): todo desenho é descrito em coordenadas
+# lógicas e rasterizado SC vezes mais fino; o atlas declara `scale` para o PixiJS.
+SC = int(os.environ.get('VEU_ART_SCALE', '2'))
+
+
+class Ramp(list):
+    """Rampa HD com tons intermediários. Índices inteiros continuam se referindo aos 5 tons
+    originais (0 = mais escuro … 4/-1 = mais claro); a coloração usa todos os tons."""
+    step = 2
+
+    def __getitem__(self, i):
+        if isinstance(i, int):
+            n0 = (len(self) - 1) // self.step + 1
+            if i < 0:
+                i += n0
+            return list.__getitem__(self, min(len(self) - 1, max(0, i * self.step)))
+        return list.__getitem__(self, i)
+
+
+def _smooth_ramp(r, steps=2):
+    """insere tons intermediários entre os tons da rampa (gradientes mais ricos no HD)"""
+    if isinstance(r, Ramp):
+        return r
+    out = Ramp()
+    for i in range(len(r) - 1):
+        for k in range(steps):
+            t = k / steps
+            out.append(r[i] * (1 - t) + r[i + 1] * t)
+    out.append(r[-1])
+    out.step = steps
+    return out
+
 # ---------------------------------------------------------------- paletas
 PAL = {
     # protagonista
@@ -66,18 +98,34 @@ PAL = {
 
 OUTLINE = hexc('#0c0810')
 
+if SC > 1:
+    for _k in list(PAL.keys()):
+        PAL[_k] = _smooth_ramp(PAL[_k])
+
 
 class Canvas:
-    def __init__(self, w: int, h: int):
-        self.w, self.h = w, h
-        self.px = np.zeros((h, w, 4), np.float32)
-        ys, xs = np.mgrid[0:h, 0:w]
-        self.xs = xs.astype(np.float32) + 0.5
-        self.ys = ys.astype(np.float32) + 0.5
-        self.bayer = np.tile(BAYER4, (h // 4 + 1, w // 4 + 1))[:h, :w]
+    def __init__(self, w: int, h: int, sc: int | None = None):
+        self.sc = SC if sc is None else sc
+        self.lw, self.lh = w, h
+        W, H = int(round(w * self.sc)), int(round(h * self.sc))
+        self.w, self.h = W, H
+        self.px = np.zeros((H, W, 4), np.float32)
+        ys, xs = np.mgrid[0:H, 0:W]
+        # coordenadas lógicas do centro de cada pixel físico
+        self.xs = (xs.astype(np.float32) + 0.5) / self.sc
+        self.ys = (ys.astype(np.float32) + 0.5) / self.sc
+        self.bayer = np.tile(BAYER4, (H // 4 + 1, W // 4 + 1))[:H, :W]
+
+    @classmethod
+    def from_image(cls, im):
+        c = cls(im.width / SC, im.height / SC)
+        c.px = np.array(im.convert('RGBA')).astype(np.float32)[: c.h, : c.w] / 255
+        return c
 
     # ------------------------------------------------------------ cores
     def _colorize(self, s, rmp, dither=True):
+        if isinstance(rmp, np.ndarray) and rmp.ndim == 1:
+            rmp = [rmp]
         n = len(rmp)
         f = np.clip(s, 0, 0.9999) * (n - 1)
         base = np.floor(f).astype(np.int32)
@@ -162,7 +210,7 @@ class Canvas:
         return mask
 
     def poly(self, pts, rmp, s=0.55, grad=(0.0, 0.0), bevel=0.0, alpha=1.0, outline=False, dither=True):
-        mask = poly_mask(self.w, self.h, pts)
+        mask = poly_mask(self.w, self.h, [(x * self.sc, y * self.sc) for x, y in pts])
         if not mask.any():
             return mask
         cx = sum(p[0] for p in pts) / len(pts)
@@ -185,7 +233,7 @@ class Canvas:
         L2 = max(vx * vx + vy * vy, 1e-6)
         t = np.clip((px * vx + py * vy) / L2, 0, 1)
         qx, qy = px - t * vx, py - t * vy
-        mask = (qx * qx + qy * qy) <= (width * 0.5) ** 2 + 0.08
+        mask = (qx * qx + qy * qy) <= (width * 0.5) ** 2 + 0.08 / self.sc
         cols = np.broadcast_to(col, self.px.shape).copy()
         self._write(mask, cols, alpha)
         return mask
@@ -198,14 +246,17 @@ class Canvas:
             self.line(cx + math.cos(t0) * r, cy + math.sin(t0) * r, cx + math.cos(t1) * r, cy + math.sin(t1) * r, col, width, alpha)
 
     def pix(self, x, y, col, alpha=1.0):
-        x, y = int(x), int(y)
-        if 0 <= x < self.w and 0 <= y < self.h:
-            if alpha >= 1:
-                self.px[y, x] = col
-            else:
-                d = self.px[y, x]
-                a = alpha * col[3]
-                self.px[y, x] = np.array([*(col[:3] * a + d[:3] * (1 - a)), a + d[3] * (1 - a)], np.float32)
+        """um pixel lógico = bloco sc×sc físico"""
+        x0, y0 = int(x) * self.sc, int(y) * self.sc
+        for yy in range(y0, y0 + self.sc):
+            for xx in range(x0, x0 + self.sc):
+                if 0 <= xx < self.w and 0 <= yy < self.h:
+                    if alpha >= 1:
+                        self.px[yy, xx] = col
+                    else:
+                        d = self.px[yy, xx]
+                        a = alpha * col[3]
+                        self.px[yy, xx] = np.array([*(col[:3] * a + d[:3] * (1 - a)), a + d[3] * (1 - a)], np.float32)
 
     def glow(self, cx, cy, r, col, strength=1.0):
         """brilho suave (apenas para FX/arte de cenário, gravado offline)."""
@@ -247,7 +298,7 @@ class Canvas:
         del sh
 
     def flip(self):
-        c = Canvas(self.w, self.h)
+        c = Canvas(self.lw, self.lh, self.sc)
         c.px = self.px[:, ::-1].copy()
         return c
 
@@ -255,6 +306,7 @@ class Canvas:
         return Image.fromarray((np.clip(self.px, 0, 1) * 255).astype(np.uint8), 'RGBA')
 
     def paste(self, other: 'Canvas', ox=0, oy=0, alpha=1.0):
+        ox, oy = int(round(ox * self.sc)), int(round(oy * self.sc))
         src = other.px
         h, w = src.shape[:2]
         x0, y0 = max(0, ox), max(0, oy)
@@ -326,9 +378,9 @@ def shatter_frames(img: Image.Image, n=5, tint=(1.0, 0.6, 0.4), seed=1):
             ccx = gx * cell + cell / 2 - cx
             ccy = gy * cell + cell / 2 - cy
             d = math.hypot(ccx, ccy) + 1e-3
-            push = t * 7
-            ox = int(round(ccx / d * push + vel[k][0] * t * 4))
-            oy = int(round(ccy / d * push + vel[k][1] * t * 4 + t * t * 6))
+            push = t * 7 * SC
+            ox = int(round(ccx / d * push + vel[k][0] * t * 4 * SC))
+            oy = int(round(ccy / d * push + vel[k][1] * t * 4 * SC + t * t * 6 * SC))
             keep = rng.random() > t * 0.55
             if not keep and f > 0:
                 continue
@@ -345,8 +397,9 @@ def shatter_frames(img: Image.Image, n=5, tint=(1.0, 0.6, 0.4), seed=1):
 
 # ---------------------------------------------------------------- atlas
 class Atlas:
-    def __init__(self, name: str, max_w=2048, pad=2):
+    def __init__(self, name: str, max_w=2048, pad=2, scale=None):
         self.name = name
+        self.scale = SC if scale is None else scale
         self.items: list[tuple[str, Image.Image]] = []
         self.anims: dict[str, list[str]] = {}
         self.max_w = max_w
@@ -408,7 +461,7 @@ class Atlas:
         sheet.save(os.path.join(out_dir, img_name), optimize=True)
         data = {'frames': frames, 'animations': self.anims,
                 'meta': {'app': 'veu-de-brasas/scripts/art', 'version': '1.0', 'image': img_name,
-                         'format': 'RGBA8888', 'size': {'w': W, 'h': H}, 'scale': '1'}}
+                         'format': 'RGBA8888', 'size': {'w': W, 'h': H}, 'scale': str(self.scale)}}
         with open(os.path.join(out_dir, f'{self.name}.json'), 'w') as f:
             json.dump(data, f, separators=(',', ':'))
         return W, H
