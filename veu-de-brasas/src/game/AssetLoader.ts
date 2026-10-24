@@ -5,10 +5,13 @@ import { AudioManager, SFX_LIST } from './AudioManager';
 export const BASE = new URL(import.meta.env.BASE_URL + 'assets/', location.href).href;
 
 const ATLASES = {
-  hero_knight: 'sov/hero_knight.json',
-  enemies: 'sov/enemies.json',
-  bosses: 'sov/bosses.json',
-  sovfx: 'sov/sovfx.json',
+  hero_knight: 'chars/hero_knight.json',
+  hero_lysa: 'chars/hero_lysa.json',
+  hero_orin: 'chars/hero_orin.json',
+  hero_brann: 'chars/hero_brann.json',
+  hero_nyx: 'chars/hero_nyx.json',
+  enemies: 'chars/enemies.json',
+  bosses: 'chars/bosses.json',
   fx: 'effects/fx.json',
   props: 'environment/props.json',
   icons: 'ui/icons.json',
@@ -16,24 +19,16 @@ const ATLASES = {
 
 export type AtlasName = keyof typeof ATLASES;
 
-/** metadados dos sprites pintados (gerado por scripts/assets/build_sov.py) */
-export interface SovChar {
+/** metadados dos sprites dos personagens (gerado por scripts/assets/build_kaykit.mjs) */
+export interface CharInfo {
   anchor: [number, number];
   size: [number, number];
   anims: Record<string, { frames: number; fps: number }>;
 }
-export interface SovFx {
-  anchor: [number, number];
-  frames: number;
-  fps: number;
-  hit: number;
-  size: [number, number];
-}
-export interface SovManifest {
-  hero: Record<string, SovChar>;
-  enemies: Record<string, SovChar>;
-  bosses: Record<string, SovChar>;
-  fx: Record<string, SovFx>;
+export interface CharManifest {
+  hero: Record<string, CharInfo>;
+  enemies: Record<string, CharInfo>;
+  bosses: Record<string, CharInfo>;
 }
 
 /** Carregador central: resolve caminhos, informa progresso e registra falhas de assets. */
@@ -42,16 +37,16 @@ export class AssetLoader {
   ground: Record<string, { width: number; height: number; chunks: { file: string; x: number; y: number; w: number; h: number }[] }> = {};
   keyart: Texture = Texture.EMPTY;
   failures: string[] = [];
-  sov: SovManifest = { hero: {}, enemies: {}, bosses: {}, fx: {} };
+  chars: CharManifest = { hero: {}, enemies: {}, bosses: {} };
 
   async load(audio: AudioManager, onProgress: (p: number, label: string) => void): Promise<void> {
     TextureStyle.defaultOptions.scaleMode = 'linear';
     try {
-      const r = await fetch(BASE + 'sov/manifest.json');
+      const r = await fetch(BASE + 'chars/manifest.json');
       if (!r.ok) throw new Error(String(r.status));
-      this.sov = await r.json();
+      this.chars = await r.json();
     } catch (e) {
-      this.fail('sov/manifest.json (rode npm run assets:sov)', e);
+      this.fail('chars/manifest.json', e);
     }
     const names = Object.keys(ATLASES) as AtlasName[];
     let step = 0;

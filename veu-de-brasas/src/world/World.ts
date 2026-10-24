@@ -542,7 +542,7 @@ export class World {
       if (!e.boss) this.damageEnemy(e, { amount: 9999, type: 'arcane', source: Src.Pulse }, true);
     });
     this.game.audio.music('music_boss', 1.5);
-    this.game.hud.bossIntro(kind === 'toad' ? 'Lâmina Carmesim' : 'Arauto Peçonhento', kind === 'toad' ? 'Assassino furioso do Véu' : 'O guardião da fenda');
+    this.game.hud.bossIntro(kind === 'toad' ? 'Senhor dos Ossos' : 'Lich do Véu', kind === 'toad' ? 'Rei esqueleto do Véu' : 'O guardião da fenda');
     this.sfx('sfx_roar', { volume: 1 });
   }
 

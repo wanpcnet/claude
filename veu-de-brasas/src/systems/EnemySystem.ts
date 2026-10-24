@@ -46,7 +46,7 @@ export class EnemySystem {
     e.loop = loop;
     // velocidade da animação vem dos metadados do sprite (quadros por segundo da arte)
     const id = name.slice(0, name.indexOf('_'));
-    const info = this.w.assets.sov.enemies[id] ?? this.w.assets.sov.bosses[id];
+    const info = this.w.assets.chars.enemies[id] ?? this.w.assets.chars.bosses[id];
     const sub = name.slice(name.indexOf('_') + 1);
     e.fps = info?.anims[sub]?.fps ?? fps ?? e.fps;
     this.loadFrames(e);
@@ -62,7 +62,7 @@ export class EnemySystem {
 
   /** âncora (pés) do sprite pintado */
   anchorFor(id: string): [number, number] {
-    const info = this.w.assets.sov.enemies[id] ?? this.w.assets.sov.bosses[id];
+    const info = this.w.assets.chars.enemies[id] ?? this.w.assets.chars.bosses[id];
     return info ? info.anchor : [0.5, 0.85];
   }
 

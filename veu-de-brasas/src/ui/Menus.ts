@@ -110,7 +110,7 @@ export class Menus {
       const c = el('button', `hero-pick ${owned ? '' : 'locked'} ${sel ? 'sel' : ''}`) as HTMLButtonElement;
       c.type = 'button';
       const bars = (Object.entries(h.rating) as [string, number][]).map(([k, v]) => `<div class="rate"><span>${k}</span><i style="--v:${v / 5}"></i></div>`).join('');
-      c.innerHTML = `<div class="hp-art"><img src="${BASE}sov/portrait_${h.id}.webp" alt=""></div>
+      c.innerHTML = `<div class="hp-art"><img src="${BASE}chars/portrait_${h.id}.webp" alt=""></div>
         <div class="hp-info"><b>${h.name}</b><small>${h.title}</small>
         <p>${h.desc}</p>
         <p class="kit"><img src="${BASE}ui/icons/${WEAPONS[h.start[0]].icon}.png" alt=""><img src="${BASE}ui/icons/${WEAPONS[h.start[1]].icon}.png" alt=""> ${startWeaponNames(h)}</p>
@@ -126,9 +126,6 @@ export class Menus {
       });
       heroes.append(c);
     }
-    const soon = el('div', 'hero-pick soon');
-    soon.innerHTML = `<div class="hp-art"><span>+3</span></div><div class="hp-info"><b>Em breve</b><small>Arqueira, Mago e Invocadora</small><p>Novos heróis chegam com os próximos pacotes de arte.</p></div>`;
-    heroes.append(soon);
     wrap.append(heroes);
     // modo
     const opts = el('div', 'opts');
@@ -270,7 +267,7 @@ export class Menus {
         <p><kbd>WASD</kbd>/<kbd>setas</kbd> mover · <kbd>Espaço</kbd> esquiva · <kbd>Q</kbd> habilidade do herói · <kbd>R</kbd> Suprema · <kbd>Esc</kbd> pausa · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> escolher carta</p>
         <p>Toque: arraste na metade esquerda para mover; botões à direita para esquiva, habilidade (◎) e Suprema (★). Gamepad: analógico, A esquiva, B/X habilidade, gatilhos Suprema.</p></section>
       <section><h3>Heróis</h3>
-        <p><b>Lysa</b> (flechas e coroa), <b>Orin</b> (mísseis e gelo), <b>Brann</b> (chicote e espinhos, muito resistente) e <b>Nyx</b> (espíritos e vazio). Cada um tem habilidade ativa e Suprema próprias.</p></section>
+        <p><b>Aldric</b> (espada e coroa, resistente), <b>Lysandro</b> (flechas e coroa), <b>Orinna</b> (mísseis e gelo), <b>Brann</b> (machado e espinhos, muito resistente) e <b>Nyx</b> (espíritos e vazio). Cada um tem habilidade ativa e Suprema próprias.</p></section>
       <section><h3>Habilidades e cartas</h3>
         <p>18 armas, 20 passivas, 10 evoluções e 7 combos. Até 6 armas e 6 passivas por partida. Leve uma arma ao nível 5 com a passiva certa para liberar sua <span class="r-legendary">evolução</span>.</p>
         <p>Raridades: <span class="r-common">Jade</span>, <span class="r-rare">Ametista</span> e <span class="r-legendary">Ouro Solar</span>. Acertos críticos aparecem em dourado.</p></section>
@@ -395,9 +392,9 @@ export class Menus {
     const wrap = el('div', `panel dialog wide results ${r.victory ? 'win' : 'lose'}`);
     const endless = r.mode === 'endless';
     const title = endless ? `Sobreviveu ${fmtTime(r.time)}` : r.victory ? 'O Véu foi selado' : 'A brasa se apagou';
-    const sub = endless ? (r.record ? 'Novo recorde no modo Sem Fim!' : 'A maré sem fim cobrou seu preço.') : r.victory ? 'As três Âncoras ardem e o Arauto Peçonhento caiu.' : 'A maré venceu desta vez — cada tentativa revela novas combinações.';
+    const sub = endless ? (r.record ? 'Novo recorde no modo Sem Fim!' : 'A maré sem fim cobrou seu preço.') : r.victory ? 'As três Âncoras ardem e o Lich do Véu caiu.' : 'A maré venceu desta vez — cada tentativa revela novas combinações.';
     const h = heroById(r.hero);
-    wrap.innerHTML = `<div class="res-head"><img src="${BASE}sov/portrait_${h.id}.webp" alt=""><div><h2>${title}</h2><p class="sub">${sub}</p><p class="sub small">${h.name} · ${r.mode === 'daily' ? 'Desafio Diário' : endless ? 'Sem Fim' : 'Campanha'} · ${r.difficulty}${r.mode === 'daily' && r.record ? ' · <b>recorde do dia!</b>' : ''}</p></div></div>`;
+    wrap.innerHTML = `<div class="res-head"><img src="${BASE}chars/portrait_${h.id}.webp" alt=""><div><h2>${title}</h2><p class="sub">${sub}</p><p class="sub small">${h.name} · ${r.mode === 'daily' ? 'Desafio Diário' : endless ? 'Sem Fim' : 'Campanha'} · ${r.difficulty}${r.mode === 'daily' && r.record ? ' · <b>recorde do dia!</b>' : ''}</p></div></div>`;
     for (const u of r.unlocks) wrap.append(el('p', 'unlock', u));
     const stats = el('div', 'stats');
     const dmg = Object.entries(r.damage).sort((a, b) => b[1] - a[1]).slice(0, 5);

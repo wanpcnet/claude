@@ -1,0 +1,516 @@
+{
+ "hero": {
+  "knight": {
+   "anims": {
+    "idle": {
+     "frames": 4,
+     "fps": 3.75
+    },
+    "walk": {
+     "frames": 6,
+     "fps": 7.5
+    },
+    "shoot": {
+     "frames": 5,
+     "fps": 15
+    },
+    "shoot2": {
+     "frames": 5,
+     "fps": 15
+    },
+    "dash": {
+     "frames": 3,
+     "fps": 14
+    },
+    "hurt": {
+     "frames": 3,
+     "fps": 10
+    },
+    "death": {
+     "frames": 5,
+     "fps": 8
+    }
+   },
+   "anchor": [
+    0.5614,
+    0.6659
+   ],
+   "size": [
+    114,
+    100.5
+   ]
+  },
+  "lysa": {
+   "anims": {
+    "idle": {
+     "frames": 4,
+     "fps": 3.75
+    },
+    "walk": {
+     "frames": 6,
+     "fps": 7.5
+    },
+    "shoot": {
+     "frames": 5,
+     "fps": 15
+    },
+    "shoot2": {
+     "frames": 5,
+     "fps": 15
+    },
+    "dash": {
+     "frames": 3,
+     "fps": 14
+    },
+    "hurt": {
+     "frames": 3,
+     "fps": 10
+    },
+    "death": {
+     "frames": 5,
+     "fps": 8
+    }
+   },
+   "anchor": [
+    0.5885,
+    0.6316
+   ],
+   "size": [
+    96,
+    92.5
+   ]
+  },
+  "orin": {
+   "anims": {
+    "idle": {
+     "frames": 4,
+     "fps": 3.75
+    },
+    "walk": {
+     "frames": 6,
+     "fps": 7.5
+    },
+    "shoot": {
+     "frames": 5,
+     "fps": 15
+    },
+    "shoot2": {
+     "frames": 5,
+     "fps": 15
+    },
+    "dash": {
+     "frames": 3,
+     "fps": 14
+    },
+    "hurt": {
+     "frames": 3,
+     "fps": 10
+    },
+    "death": {
+     "frames": 5,
+     "fps": 8
+    }
+   },
+   "anchor": [
+    0.5893,
+    0.6365
+   ],
+   "size": [
+    112,
+    107.5
+   ]
+  },
+  "brann": {
+   "anims": {
+    "idle": {
+     "frames": 4,
+     "fps": 3.75
+    },
+    "walk": {
+     "frames": 6,
+     "fps": 7.5
+    },
+    "shoot": {
+     "frames": 5,
+     "fps": 15
+    },
+    "shoot2": {
+     "frames": 5,
+     "fps": 15
+    },
+    "dash": {
+     "frames": 3,
+     "fps": 14
+    },
+    "hurt": {
+     "frames": 3,
+     "fps": 10
+    },
+    "death": {
+     "frames": 5,
+     "fps": 8
+    }
+   },
+   "anchor": [
+    0.584,
+    0.6472
+   ],
+   "size": [
+    119,
+    98
+   ]
+  },
+  "nyx": {
+   "anims": {
+    "idle": {
+     "frames": 4,
+     "fps": 3.75
+    },
+    "walk": {
+     "frames": 6,
+     "fps": 7.5
+    },
+    "shoot": {
+     "frames": 5,
+     "fps": 15
+    },
+    "shoot2": {
+     "frames": 5,
+     "fps": 15
+    },
+    "dash": {
+     "frames": 3,
+     "fps": 14
+    },
+    "hurt": {
+     "frames": 3,
+     "fps": 10
+    },
+    "death": {
+     "frames": 5,
+     "fps": 8
+    }
+   },
+   "anchor": [
+    0.5652,
+    0.6629
+   ],
+   "size": [
+    115,
+    108.5
+   ]
+  }
+ },
+ "enemies": {
+  "rust": {
+   "anims": {
+    "walk": {
+     "frames": 6,
+     "fps": 7.5
+    },
+    "death": {
+     "frames": 5,
+     "fps": 9
+    }
+   },
+   "anchor": [
+    0.6429,
+    0.5723
+   ],
+   "size": [
+    84,
+    83
+   ]
+  },
+  "spider": {
+   "anims": {
+    "walk": {
+     "frames": 6,
+     "fps": 7.5
+    },
+    "lunge": {
+     "frames": 4,
+     "fps": 10
+    },
+    "death": {
+     "frames": 5,
+     "fps": 9
+    }
+   },
+   "anchor": [
+    0.5484,
+    0.5511
+   ],
+   "size": [
+    108.5,
+    91.5
+   ]
+  },
+  "wasp": {
+   "anims": {
+    "fly": {
+     "frames": 6,
+     "fps": 7.5
+    },
+    "dive": {
+     "frames": 4,
+     "fps": 12
+    },
+    "death": {
+     "frames": 5,
+     "fps": 9
+    }
+   },
+   "anchor": [
+    0.5675,
+    0.5743
+   ],
+   "size": [
+    100,
+    87
+   ]
+  },
+  "frog": {
+   "anims": {
+    "idle": {
+     "frames": 4,
+     "fps": 0.94
+    },
+    "crouch": {
+     "frames": 1,
+     "fps": 6
+    },
+    "jump": {
+     "frames": 1,
+     "fps": 6
+    },
+    "land": {
+     "frames": 1,
+     "fps": 6
+    },
+    "death": {
+     "frames": 5,
+     "fps": 9
+    }
+   },
+   "anchor": [
+    0.6771,
+    0.5683
+   ],
+   "size": [
+    96,
+    93
+   ]
+  },
+  "slime": {
+   "anims": {
+    "walk": {
+     "frames": 6,
+     "fps": 3.75
+    },
+    "attack": {
+     "frames": 5,
+     "fps": 10
+    },
+    "death": {
+     "frames": 5,
+     "fps": 9
+    }
+   },
+   "anchor": [
+    0.632,
+    0.5687
+   ],
+   "size": [
+    115.5,
+    104.5
+   ]
+  },
+  "shell": {
+   "anims": {
+    "walk": {
+     "frames": 6,
+     "fps": 3.75
+    },
+    "windup": {
+     "frames": 3,
+     "fps": 2.81
+    },
+    "charge": {
+     "frames": 6,
+     "fps": 7.5
+    },
+    "death": {
+     "frames": 5,
+     "fps": 9
+    }
+   },
+   "anchor": [
+    0.6206,
+    0.5676
+   ],
+   "size": [
+    126.5,
+    112.5
+   ]
+  },
+  "ghost": {
+   "anims": {
+    "float": {
+     "frames": 6,
+     "fps": 3.75
+    },
+    "cast": {
+     "frames": 4,
+     "fps": 8
+    },
+    "death": {
+     "frames": 5,
+     "fps": 9
+    }
+   },
+   "anchor": [
+    0.6553,
+    0.54
+   ],
+   "size": [
+    103,
+    100
+   ]
+  },
+  "guardian": {
+   "anims": {
+    "walk": {
+     "frames": 6,
+     "fps": 3.75
+    },
+    "windup": {
+     "frames": 4,
+     "fps": 6
+    },
+    "death": {
+     "frames": 5,
+     "fps": 9
+    },
+    "broken": {
+     "frames": 6,
+     "fps": 3.75
+    }
+   },
+   "anchor": [
+    0.6204,
+    0.5676
+   ],
+   "size": [
+    178.5,
+    158.5
+   ]
+  },
+  "priestess": {
+   "anims": {
+    "float": {
+     "frames": 6,
+     "fps": 3.75
+    },
+    "cast": {
+     "frames": 5,
+     "fps": 8
+    },
+    "death": {
+     "frames": 5,
+     "fps": 9
+    }
+   },
+   "anchor": [
+    0.6553,
+    0.5407
+   ],
+   "size": [
+    161,
+    156
+   ]
+  }
+ },
+ "bosses": {
+  "toad": {
+   "anims": {
+    "idle": {
+     "frames": 4,
+     "fps": 0.94
+    },
+    "rage": {
+     "frames": 4,
+     "fps": 6
+    },
+    "crouch": {
+     "frames": 1,
+     "fps": 4
+    },
+    "air": {
+     "frames": 2,
+     "fps": 5
+    },
+    "land": {
+     "frames": 2,
+     "fps": 4
+    },
+    "spit": {
+     "frames": 4,
+     "fps": 6
+    },
+    "death": {
+     "frames": 5,
+     "fps": 9
+    }
+   },
+   "anchor": [
+    0.6199,
+    0.5763
+   ],
+   "size": [
+    261.3,
+    236
+   ]
+  },
+  "heart": {
+   "anims": {
+    "p0": {
+     "frames": 4,
+     "fps": 0.94
+    },
+    "p1": {
+     "frames": 4,
+     "fps": 2.5
+    },
+    "p2": {
+     "frames": 4,
+     "fps": 5
+    },
+    "flare0": {
+     "frames": 3,
+     "fps": 6
+    },
+    "flare1": {
+     "frames": 3,
+     "fps": 6
+    },
+    "flare2": {
+     "frames": 3,
+     "fps": 6
+    },
+    "death": {
+     "frames": 5,
+     "fps": 9
+    }
+   },
+   "anchor": [
+    0.6568,
+    0.5404
+   ],
+   "size": [
+    246.7,
+    239.3
+   ]
+  }
+ }
+}

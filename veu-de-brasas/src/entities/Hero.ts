@@ -58,7 +58,7 @@ export class Hero {
     this.pre = `hero_${hid}_`;
     this.dashCharges = w.stats.dashCharges;
     this.sprite = new Sprite(Texture.EMPTY);
-    const info = w.assets.sov.hero[hid] ?? w.assets.sov.hero.knight;
+    const info = w.assets.chars.hero[hid] ?? w.assets.chars.hero.knight;
     this.sprite.anchor.set(info.anchor[0], info.anchor[1]);
     for (const [k, v] of Object.entries(info.anims)) this.fps[k] = v.fps;
     this.shadow = new Sprite(w.assets.tex('fx', 'shadow'));

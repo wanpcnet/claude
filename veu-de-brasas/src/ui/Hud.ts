@@ -95,7 +95,7 @@ export class Hud {
   setHero(h: HeroDef): void {
     if (this.heroId === h.id) return;
     this.heroId = h.id;
-    this.portrait.innerHTML = `<img src="${BASE}sov/portrait_${h.id}.webp" alt="${h.name}">`;
+    this.portrait.innerHTML = `<img src="${BASE}chars/portrait_${h.id}.webp" alt="${h.name}">`;
     (this.pulse.querySelector('img') as HTMLImageElement).src = `${BASE}ui/icons/${ACTIVE_ICON[h.active]}.png`;
     (this.ult.querySelector('img') as HTMLImageElement).src = `${BASE}ui/icons/${ULT_ICON[h.ult]}.png`;
     this.pulse.title = `${h.activeName} (Q): ${h.activeDesc}`;

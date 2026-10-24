@@ -559,7 +559,5 @@ kbd {
   .hero-pick { padding-bottom: 6px; }
   .relics { grid-template-columns: 1fr; }
 }
-.hero-pick.soon { cursor: default; opacity: 0.6; }
-.hero-pick.soon .hp-art span { font-family: var(--font-title); font-size: 42px; color: #ffd28a; }
 .hp-art img { image-rendering: auto; }
 .hud-portrait img { image-rendering: auto; }

@@ -236,7 +236,7 @@ export class Director {
       const kind = this.endlessKind++ % 2 ? 'priestess' : 'guardian';
       const p = this.spawnPoint('around', 1) ?? this.safePoint(w.hero.x, w.hero.y - 220, 80);
       this.target = w.enemies.spawn(kind, p.x, p.y);
-      w.announce(kind === 'guardian' ? 'Um Campeão Rubro se aproxima!' : 'A Lâmina Celeste surge!');
+      w.announce(kind === 'guardian' ? 'Um Campeão de Ossos se aproxima!' : 'A Necromante Celeste surge!');
       w.sfx('sfx_roar', { volume: 0.6, rate: 1.2 });
     }
   }

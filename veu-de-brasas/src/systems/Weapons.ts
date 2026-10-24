@@ -358,7 +358,7 @@ export class Weapons {
     w.sfx('sfx_explosion', { volume: 0.25, gap: 0.08, rate: 1.4 });
   }
 
-  /** Pulso da Coroa (habilidade ativa de Lysa). A energia é cobrada pelo sistema de habilidades. */
+  /** Pulso da Coroa (habilidade ativa de Lysandro). A energia é cobrada pelo sistema de habilidades. */
   pulse(): boolean {
     const w = this.w;
     const L = this.lvl('crown') ?? WEAPONS.crown.levels[0];
